@@ -60,14 +60,14 @@ This directory contains all project documentation files.
 
 ## 🎯 Project Deliverables Timeline
 
-| #   | Deliverable              | Date           | Format            |
-| --- | ------------------------ | -------------- | ----------------- |
-| 1   | Project proposal meeting | April 8, 2026  | 15-min meeting    |
-| 2   | Demo video               | April 29, 2026 | 8-12 min video    |
-| 3   | Class presentation       | May 20, 2026   | Oral presentation |
-| 4   | IEEE paper               | June 3, 2026   | ~3 pages          |
-| 5   | Final presentation       | July 1, 2026   | 10-12 min         |
-| 6   | Final IEEE paper         | July 5, 2026   | 6 pages           |
+| #   | Deliverable              | Date          | Format            |
+| --- | ------------------------ | ------------- | ----------------- |
+| 1   | Project proposal meeting | April 8, 2026 | 15-min meeting    |
+| 2   | Demo video               | May 6, 2026   | 8-12 min video    |
+| 3   | Class presentation       | May 20, 2026  | Oral presentation |
+| 4   | IEEE paper               | June 3, 2026  | ~3 pages          |
+| 5   | Final presentation       | July 1, 2026  | 10-12 min         |
+| 6   | Final IEEE paper         | July 5, 2026  | 6 pages           |
 
 Details for each deliverable can be found in [PLAN_PROYECTO.md](PLAN_PROYECTO.md).
 
@@ -81,4 +81,3 @@ Details for each deliverable can be found in [PLAN_PROYECTO.md](PLAN_PROYECTO.md
 ---
 
 **Note:** All documentation is maintained as part of the PF3325 course project. Keep documentation up-to-date as the project evolves.
-

@@ -50,7 +50,7 @@ This directory contains presentation materials for course deliverables.
 
 **Recommended:** Include live demo of the API in action!
 
-### Entrega 2 - Video Script (April 29, 2026)
+### Entrega 2 - Video Script (May 6, 2026)
 
 **File:** `entrega2_video_script.md`
 
@@ -108,4 +108,3 @@ For video recording:
 - Zoom recording
 - Loom
 - QuickTime (macOS)
-

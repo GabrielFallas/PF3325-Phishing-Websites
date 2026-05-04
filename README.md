@@ -3,6 +3,7 @@
 > **Course:** PF3325 – Redes  
 > **Dataset:** [UCI ML Repository – Phishing Websites (ID: 327)](https://archive.ics.uci.edu/dataset/327/phishing+websites)  
 > **Status:** 🚧 In Development
+> **Students:** Gabriel Fallas - Valeria Chinchilla
 
 ## 📋 Overview
 
@@ -218,8 +219,8 @@ The system includes a FastAPI-based REST API for real-time phishing detection:
 
 ```json
 {
-	"prediction": "Legítimo",
-	"confidence": 0.94
+  "prediction": "Legítimo",
+  "confidence": 0.94
 }
 ```
 
@@ -231,28 +232,20 @@ The system includes a FastAPI-based REST API for real-time phishing detection:
 
 ## 📅 Project Timeline
 
-| Phase | Deliverable                                           | Date           |
-| ----- | ----------------------------------------------------- | -------------- |
-| 1     | Project proposal meeting                              | April 8, 2026  |
-| 2     | Demo video (8-12 min)                                 | April 29, 2026 |
-| 3     | Class presentation (motivation, related work, theory) | May 20, 2026   |
-| 4     | IEEE paper (~3 pages)                                 | June 3, 2026   |
-| 5     | Final presentation (implementation + real-time)       | July 1, 2026   |
-| 6     | Final IEEE paper (6 pages)                            | July 5, 2026   |
+| Phase | Deliverable                                           | Date          |
+| ----- | ----------------------------------------------------- | ------------- |
+| 1     | Project proposal meeting                              | April 8, 2026 |
+| 2     | Demo video (8-12 min)                                 | May 6, 2026   |
+| 3     | Class presentation (motivation, related work, theory) | May 20, 2026  |
+| 4     | IEEE paper (~3 pages)                                 | June 3, 2026  |
+| 5     | Final presentation (implementation + real-time)       | July 1, 2026  |
+| 6     | Final IEEE paper (6 pages)                            | July 5, 2026  |
 
 ## 👥 Contributors
 
-_(Add your names and GitHub profiles here)_
-
-## 📄 License
-
-This project is developed as part of the PF3325 course. Please refer to your institution's academic policies regarding code sharing and reuse.
-
-## 🤝 Contributing
-
-This is an academic project. For detailed contribution guidelines, code style, and git workflow, see [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md).
+- Gabriel Fallas
+- Valeria Chinchilla
 
 ---
 
 **Keywords:** phishing detection, neural networks, machine learning, cybersecurity, deep learning, FastAPI
-
