@@ -317,7 +317,7 @@ print("AUC-ROC:", roc_auc_score(y_test_bin, model.predict(X_test_sc)))
 ### Formato
 
 - **Presentación oral en clase**
-- **Fecha:** Miércoles 20 de mayo
+- **Fecha:** Miércoles 27 de mayo
 
 ### Estructura de la Presentación
 
@@ -370,7 +370,7 @@ print("AUC-ROC:", roc_auc_score(y_test_bin, model.predict(X_test_sc)))
 ### Formato
 
 - **≈3 páginas, formato IEEE doble columna**
-- **Fecha:** Miércoles 3 de junio
+- **Fecha:** Miércoles 10 de junio
 
 ### Estructura del Documento (IEEE format)
 

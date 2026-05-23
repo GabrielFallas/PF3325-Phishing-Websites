@@ -56,7 +56,8 @@ The dataset contains 30 features organized in 4 categories (Mohammad et al., 201
 phishing-detection-pf3325/
 │
 ├── data/                              # Dataset files
-│   ├── Training Dataset.arff          # Original UCI dataset
+│   ├── Training Dataset.arff          # Original UCI dataset (11,055 instances, 30 features)
+│   ├── README.md                      # Dataset documentation
 │   └── processed/                     # Preprocessed data (not tracked)
 │
 ├── notebooks/                         # Jupyter notebooks for analysis
@@ -72,26 +73,42 @@ phishing-detection-pf3325/
 │   ├── train.py                       # Training script
 │   ├── evaluate.py                    # Evaluation metrics & visualizations
 │   ├── feature_extractor.py           # Real-time feature extraction from URLs
-│   └── api_phishing.py                # FastAPI REST API
+│   ├── api_phishing.py                # FastAPI REST API
+│   └── README.md                      # Source code documentation
 │
 ├── models/                            # Trained models (not tracked)
 │   ├── best_model.keras               # Best trained model
-│   └── scaler.joblib                  # Fitted StandardScaler
+│   ├── scaler.joblib                  # Fitted StandardScaler
+│   └── README.md                      # Model persistence documentation
 │
-├── reports/                           # Academic deliveries
-│   ├── entrega4_contexto.pdf          # IEEE 3-page paper
-│   └── entrega6_final.pdf             # IEEE 6-page final paper
+├── reports/                           # Academic deliverables
+│   ├── entrega4_contexto.pdf          # IEEE 3-page paper (due June 3, 2026)
+│   ├── entrega6_final.pdf             # IEEE 6-page final paper (due July 5, 2026)
+│   └── README.md                      # Reports documentation
 │
-├── presentations/                     # Presentation materials
-│   ├── entrega3_presentacion.pptx
-│   ├── entrega5_presentacion.pptx
-│   └── entrega2_video_script.md
-│
-├── docs/                              # Documentation
+├── docs/                              # Documentation directory
+│   ├── README.md                      # Docs index & navigation
 │   ├── PLAN_PROYECTO.md               # Detailed project plan (Spanish)
 │   ├── CONTRIBUTING.md                # Contribution guidelines
 │   ├── GITHUB_SETUP.md                # GitHub setup tutorial
-│   └── SETUP_COMPLETE.md              # Setup completion guide
+│   ├── SETUP_COMPLETE.md              # Setup completion guide
+│   │
+│   └── entregables/                   # Course deliverables (Entregas 2-6)
+│       ├── entrega2/                  # Delivery 2: Video + Baseline Models
+│       │   ├── README.md
+│       │   └── entrega2_video_script.md
+│       │
+│       ├── entrega3/                  # Delivery 3: Class Presentation (May 27, 2026)
+│       │   ├── README.md
+│       │   ├── ENTREGA3_PRESENTACION.md       # Complete presentation guide (script + notes)
+│       │   ├── presentacion.html              # Interactive HTML presentation [NEW]
+│       │   ├── SCRIPT_PRESENTACION.md         # Detailed presenter script with timing [NEW]
+│       │   └── CHECKLIST.md
+│       │
+│       └── entrega4/                  # Delivery 4: IEEE Paper (~3 pages, June 3, 2026)
+│           ├── README.md
+│           ├── ENTREGA4_IEEE_PAPER.md         # Complete IEEE paper draft
+│           └── references.bib
 │
 ├── .gitignore                         # Files to ignore in git
 ├── requirements.txt                   # Python dependencies
@@ -232,14 +249,14 @@ The system includes a FastAPI-based REST API for real-time phishing detection:
 
 ## 📅 Project Timeline
 
-| Phase | Deliverable                                           | Date          |
-| ----- | ----------------------------------------------------- | ------------- |
-| 1     | Project proposal meeting                              | April 8, 2026 |
-| 2     | Demo video (8-12 min)                                 | May 6, 2026   |
-| 3     | Class presentation (motivation, related work, theory) | May 20, 2026  |
-| 4     | IEEE paper (~3 pages)                                 | June 3, 2026  |
-| 5     | Final presentation (implementation + real-time)       | July 1, 2026  |
-| 6     | Final IEEE paper (6 pages)                            | July 5, 2026  |
+| Phase | Deliverable                                           | Date          | Status        |
+| ----- | ----------------------------------------------------- | ------------- | ------------- |
+| 1     | Project proposal meeting                              | April 8, 2026 | ✅ Completed  |
+| 2     | Demo video (8-12 min) + Baseline models               | May 6, 2026   | ✅ Completed  |
+| 3     | Class presentation (motivation, related work, theory) | May 27, 2026  | ✅ Completed|
+| 4     | IEEE paper (~3 pages)                                 | June 3, 2026  | ✅ Completed  |
+| 5     | Final presentation (implementation + real-time API)   | July 1, 2026  | 🚧 Planned   |
+| 6     | Final IEEE paper (6 pages)                            | July 5, 2026  | 🚧 Planned   |
 
 ## 👥 Contributors
 
