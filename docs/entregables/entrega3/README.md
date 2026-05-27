@@ -42,7 +42,6 @@
 18:30 - 20:30  │  Redes Neuronales (MLP)         │  GABRIEL (2 min)
 20:30 - 22:00  │  Regularización y Técnicas      │  GABRIEL (1.5 min)
 22:00 - 23:30  │  Resultados Preliminares        │  GABRIEL (1.5 min)
-23:30 - 24:00  │  Próximos Pasos                 │  GABRIEL (30 seg)
 ```
 
 ---
