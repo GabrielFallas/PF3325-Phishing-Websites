@@ -57,13 +57,27 @@ Real-time feature extraction from URLs:
 
 ### `api_phishing.py`
 
-FastAPI REST API for real-time detection:
+FastAPI REST API + web demo for real-time detection:
 
-- POST endpoint for prediction
-- Model loading and inference
-- Request/response schemas
-- API documentation (Swagger/OpenAPI)
-- Error handling
+- `GET /` interactive web demo, `GET /health`
+- `POST /predict/features` (30-value vector) and `POST /predict/url` (raw URL)
+- Loads `best_model.keras` + `scaler.joblib`; returns verdict, confidence and
+  per-feature provenance
+- API docs at `/docs` (Swagger/OpenAPI)
+
+### `train_sklearn.py`
+
+Trains the Random Forest and SVM (RBF) baselines and saves them as `.pkl`.
+
+### `compare_models.py`
+
+Evaluates RF, SVM and the MLP on the test set; writes `reports/metrics.json`,
+the combined `roc_comparison.png` and `confusion_mlp.png`.
+
+### `make_figures.py`
+
+Generates the diagram figures for the paper/slides
+(`fig_pipeline.png`, `fig_mlp.png`).
 
 ## Usage
 

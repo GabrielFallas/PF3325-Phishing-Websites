@@ -60,20 +60,17 @@ phishing-detection-pf3325/
 │   ├── README.md                      # Dataset documentation
 │   └── processed/                     # Preprocessed data (not tracked)
 │
-├── notebooks/                         # Jupyter notebooks for analysis
-│   ├── 01_eda.ipynb                   # Exploratory Data Analysis
-│   ├── 02_preprocessing.ipynb         # Data preprocessing
-│   ├── 03_model_training.ipynb        # Model training
-│   ├── 04_experiments.ipynb           # Architecture comparison
-│   └── 05_evaluation.ipynb            # Final evaluation & metrics
-│
 ├── src/                               # Source code
 │   ├── preprocess.py                  # Preprocessing pipeline
 │   ├── model.py                       # Neural network architecture
-│   ├── train.py                       # Training script
-│   ├── evaluate.py                    # Evaluation metrics & visualizations
+│   ├── train.py                       # MLP training script
+│   ├── train_sklearn.py               # RF / SVM baseline training
+│   ├── evaluate.py                    # MLP evaluation + figures
+│   ├── compare_models.py              # RF/SVM/MLP comparison + metrics.json + ROC
+│   ├── make_figures.py                # Architecture & pipeline diagrams
 │   ├── feature_extractor.py           # Real-time feature extraction from URLs
-│   ├── api_phishing.py                # FastAPI REST API
+│   ├── api_phishing.py                # FastAPI REST API + web demo
+│   ├── demo.py                        # Console demo (Entrega 2)
 │   └── README.md                      # Source code documentation
 │
 ├── models/                            # Trained models (not tracked)
@@ -105,10 +102,21 @@ phishing-detection-pf3325/
 │       │   ├── SCRIPT_PRESENTACION.md         # Detailed presenter script with timing [NEW]
 │       │   └── CHECKLIST.md
 │       │
-│       └── entrega4/                  # Delivery 4: IEEE Paper (~3 pages, June 3, 2026)
+│       ├── entrega4/                  # Delivery 4: IEEE Paper (~3 pages, June 3, 2026)
+│       │   ├── README.md
+│       │   └── ENTREGA4_IEEE_PAPER.md         # Complete IEEE paper draft
+│       │
+│       ├── entrega5/                  # Delivery 5: Final presentation (July 1, 2026)
+│       │   ├── README.md
+│       │   ├── presentacion.html              # Interactive 13-slide deck
+│       │   ├── SCRIPT_PRESENTACION.md         # Presenter script with timing
+│       │   └── figures/
+│       │
+│       └── entrega6/                  # Delivery 6: Final IEEE paper (6 pages, July 5, 2026)
 │           ├── README.md
-│           ├── ENTREGA4_IEEE_PAPER.md         # Complete IEEE paper draft
-│           └── references.bib
+│           ├── main.tex                       # Compilable IEEEtran paper
+│           ├── references.bib
+│           └── figures/
 │
 ├── .gitignore                         # Files to ignore in git
 ├── requirements.txt                   # Python dependencies
@@ -191,15 +199,16 @@ The neural network uses the following architecture:
 
 ## 📈 Results
 
-_(To be updated after training)_
+Test set: 1,659 samples (15%, stratified). Numbers from `reports/metrics.json`.
 
-| Metric    | Value |
-| --------- | ----- |
-| Accuracy  | TBD   |
-| Precision | TBD   |
-| Recall    | TBD   |
-| F1-Score  | TBD   |
-| AUC-ROC   | TBD   |
+| Model              | Accuracy | Precision | Recall    | F1-Score | AUC-ROC |
+| ------------------ | -------- | --------- | --------- | -------- | ------- |
+| Random Forest      | 0.972    | 0.969     | 0.981     | 0.975    | 0.996   |
+| SVM (RBF)          | 0.946    | 0.935     | 0.971     | 0.953    | 0.987   |
+| **MLP (proposed)** | 0.965    | 0.951     | **0.988** | 0.969    | 0.994   |
+
+The MLP attains the **highest recall (98.8%)** — the decisive metric for a
+security filter — missing only 11 phishing sites out of 924 on the test set.
 
 ## 🔬 Methodology
 
@@ -220,26 +229,46 @@ _(To be updated after training)_
 
 ## 🌐 Real-Time Detection API
 
-The system includes a FastAPI-based REST API for real-time phishing detection:
+The system includes a FastAPI-based REST API (`src/api_phishing.py`) for
+real-time phishing detection, plus an interactive web demo at `GET /`.
 
-**Endpoint:** `POST /predict/features`
+```bash
+uvicorn src.api_phishing:app --reload   # open http://localhost:8000
+```
 
-**Request Body:**
+### Endpoints
+
+| Method & path           | Purpose                                            |
+| ----------------------- | -------------------------------------------------- |
+| `GET  /`                | Interactive web demo (paste a URL, get a verdict)  |
+| `GET  /health`          | Liveness + model metadata                          |
+| `POST /predict/features`| Score a pre-extracted 30-feature vector            |
+| `POST /predict/url`     | Extract features from a raw URL and classify it    |
+
+**`POST /predict/url`**
 
 ```json
+// Request
+{ "url": "https://www.github.com" }
+
+// Response
 {
-  "features": [1, 1, -1, 1, 1, -1, ..., 1]  // 30 feature values
+  "prediction": "Legitimate",
+  "label": "Legítimo",
+  "is_phishing": false,
+  "confidence": 0.99,
+  "p_phishing": 0.0,
+  "info": { "registered_domain": "github.com", "n_measured": 24, "n_default": 6 },
+  "features": { "having_IP_Address": { "value": 1, "source": "measured" }, "...": {} }
 }
 ```
 
-**Response:**
-
-```json
-{
-  "prediction": "Legítimo",
-  "confidence": 0.94
-}
-```
+> **Note on real-time extraction.** `feature_extractor.py` computes ~24/30
+> features live (URL string, TLS handshake, HTML/JS parsing, DNS, WHOIS). Six
+> features (`web_traffic`/Alexa, `Page_Rank`, `Links_pointing_to_page`,
+> `Google_Index`, `Statistical_report`) rely on services that are now defunct or
+> paid-only, so they fall back to a neutral default; each response reports the
+> per-feature `source` (`measured` vs `default`).
 
 ## 📚 References
 
@@ -255,8 +284,8 @@ The system includes a FastAPI-based REST API for real-time phishing detection:
 | 2     | Demo video (8-12 min) + Baseline models               | May 6, 2026   | ✅ Completed  |
 | 3     | Class presentation (motivation, related work, theory) | May 27, 2026  | ✅ Completed|
 | 4     | IEEE paper (~3 pages)                                 | June 3, 2026  | ✅ Completed  |
-| 5     | Final presentation (implementation + real-time API)   | July 1, 2026  | 🚧 Planned   |
-| 6     | Final IEEE paper (6 pages)                            | July 5, 2026  | 🚧 Planned   |
+| 5     | Final presentation (implementation + real-time API)   | July 1, 2026  | ✅ Completed  |
+| 6     | Final IEEE paper (6 pages)                            | July 5, 2026  | ✅ Completed  |
 
 ## 👥 Contributors
 

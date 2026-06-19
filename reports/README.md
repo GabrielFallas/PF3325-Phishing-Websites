@@ -1,23 +1,33 @@
 # Reports Directory
 
-This directory contains academic deliverables and documentation for the PF3325 course project.
+Generated artifacts (figures + metrics) used in the Entrega 5 presentation and
+the Entrega 6 IEEE paper. Regenerate with the scripts in `src/`.
 
-## Contents
+## Generated assets
 
-### Academic Papers (IEEE Format)
+| File | Produced by | Used in |
+| ---- | ----------- | ------- |
+| `metrics.json` | `src/compare_models.py` | Results tables |
+| `roc_comparison.png` | `src/compare_models.py` | Fig. ROC (RF/SVM/MLP) |
+| `confusion_mlp.png` | `src/compare_models.py` | Fig. MLP confusion matrix |
+| `training_history.png` | `src/evaluate.py` | Fig. training curves |
+| `fig_pipeline.png` | `src/make_figures.py` | Fig. system architecture |
+| `fig_mlp.png` | `src/make_figures.py` | Fig. MLP architecture |
+| `confusion_matrix.png`, `roc_curve.png` | `src/evaluate.py` | Single-model plots |
 
-- `entrega4_contexto.pdf` - IEEE format paper (~3 pages)
-  - Motivation and problem description
-  - Related work comparison
-  - Theoretical framework
-  - **Due:** June 3, 2026
+## Final results (test set, 1,659 samples)
 
-- `entrega6_final.pdf` - IEEE format final paper (6 pages)
-  - Complete research paper with all sections
-  - Implementation details
-  - Results and analysis
-  - Real-time detection component description
-  - **Due:** July 5, 2026
+| Model | Acc | Prec | Recall | F1 | AUC |
+|-------|-----|------|--------|----|----|
+| Random Forest | 0.972 | 0.969 | 0.981 | 0.975 | 0.996 |
+| SVM (RBF) | 0.946 | 0.935 | 0.971 | 0.953 | 0.987 |
+| MLP (proposed) | 0.965 | 0.951 | **0.988** | 0.969 | 0.994 |
+
+## Paper source
+
+The compilable LaTeX paper lives in `docs/entregables/entrega6/`
+(`main.tex` + `references.bib` + `figures/`). See that folder's README for
+compile instructions (Overleaf or local `pdflatex`).
 
 ### Paper Structure
 

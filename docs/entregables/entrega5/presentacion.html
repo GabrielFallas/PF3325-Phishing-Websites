@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Entrega 5 — Detección de Phishing en Tiempo Real | PF3325</title>
+<style>
+  :root{
+    --bg:#0b1220; --slide:#0f172a; --card:#1e293b; --accent:#38bdf8;
+    --accent2:#818cf8; --ok:#22c55e; --bad:#ef4444; --warn:#facc15; --muted:#94a3b8;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{height:100%;}
+  body{font-family:system-ui,"Segoe UI",Roboto,sans-serif; background:var(--bg);
+       color:#e2e8f0; overflow:hidden;}
+  .deck{height:100vh; width:100vw; position:relative;}
+  .slide{position:absolute; inset:0; display:none; flex-direction:column;
+         justify-content:center; padding:5vh 7vw; animation:fade .35s ease;}
+  .slide.active{display:flex;}
+  @keyframes fade{from{opacity:0; transform:translateY(12px);} to{opacity:1; transform:none;}}
+  h1{font-size:clamp(1.8rem,4.2vw,3.2rem); line-height:1.1; margin-bottom:.4em;}
+  h2{font-size:clamp(1.4rem,3vw,2.2rem); color:var(--accent); margin-bottom:.7em;}
+  h3{font-size:clamp(1rem,1.7vw,1.3rem); color:var(--accent2); margin:.6em 0 .3em;}
+  p,li{font-size:clamp(1rem,1.7vw,1.35rem); line-height:1.5; color:#cbd5e1;}
+  ul{margin-left:1.3em; margin-top:.4em;}
+  li{margin:.45em 0;}
+  .lead{color:var(--muted); font-size:clamp(1.05rem,2vw,1.5rem);}
+  .big{font-size:clamp(2.4rem,6vw,4.5rem); font-weight:800; color:#fff;}
+  .accent{color:var(--accent);} .ok{color:var(--ok);} .bad{color:var(--bad);}
+  .warn{color:var(--warn);}
+  .grid{display:grid; gap:1.2rem; margin-top:1rem;}
+  .g2{grid-template-columns:1fr 1fr;} .g3{grid-template-columns:1fr 1fr 1fr;}
+  .card{background:var(--card); border:1px solid #334155; border-radius:14px;
+        padding:1.1rem 1.3rem;}
+  .card h3{margin-top:0;}
+  .stat{font-size:clamp(2rem,5vw,3.6rem); font-weight:800; color:var(--accent);}
+  img{max-width:100%; max-height:62vh; object-fit:contain; border-radius:12px;
+      background:#fff; padding:8px;}
+  .center{align-items:center; text-align:center;}
+  table{width:100%; border-collapse:collapse; margin-top:1rem; font-size:clamp(.9rem,1.6vw,1.25rem);}
+  th,td{padding:.55rem .7rem; border-bottom:1px solid #334155; text-align:center;}
+  th{color:var(--accent); } td:first-child,th:first-child{text-align:left;}
+  tr.hl td{background:rgba(56,189,248,.12); font-weight:700; color:#fff;}
+  code{background:#0b1220; padding:.12em .4em; border-radius:5px; color:#7dd3fc;
+       font-size:.92em;}
+  .tag{display:inline-block; padding:.15em .6em; border-radius:6px; font-size:.78em;
+       font-weight:700;}
+  .t-ok{background:rgba(34,197,94,.18); color:var(--ok);}
+  .t-bad{background:rgba(239,68,68,.18); color:var(--bad);}
+  .foot{position:absolute; bottom:2vh; left:7vw; right:7vw; display:flex;
+        justify-content:space-between; color:#475569; font-size:.85rem;}
+  .nav{position:absolute; bottom:2vh; left:50%; transform:translateX(-50%);
+       display:flex; gap:.5rem; align-items:center; z-index:10;}
+  .nav button{background:var(--card); color:#e2e8f0; border:1px solid #334155;
+       border-radius:8px; padding:.35rem .7rem; cursor:pointer; font-size:1rem;}
+  .nav button:hover{border-color:var(--accent);}
+  .bar{position:fixed; top:0; left:0; height:4px; background:var(--accent); z-index:20;
+       transition:width .25s;}
+  .two{display:grid; grid-template-columns:1.1fr .9fr; gap:2rem; align-items:center;}
+  .pill{display:inline-block;background:#0b1220;border:1px solid #334155;border-radius:999px;
+        padding:.2em .8em;margin:.2em;color:var(--muted);font-size:.9em;}
+  .kicker{color:var(--accent2);font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+          font-size:.85rem;margin-bottom:.6em;}
+</style>
+</head>
+<body>
+<div class="bar" id="bar"></div>
+<div class="deck" id="deck">
+
+  <!-- 1 -->
+  <section class="slide active center">
+    <div class="kicker">PF3325 — Redes · Entrega 5</div>
+    <h1>Detección de Sitios de Phishing<br>con Redes Neuronales</h1>
+    <p class="lead">De la clasificación offline a la <span class="accent">detección en tiempo real</span></p>
+    <p style="margin-top:2rem">Gabriel Fallas &nbsp;·&nbsp; Valeria Chinchilla</p>
+    <p class="lead">Universidad de Costa Rica — 1 de julio de 2026</p>
+  </section>
+
+  <!-- 2 -->
+  <section class="slide">
+    <div class="kicker">Motivación</div>
+    <h2>El phishing sigue ganando</h2>
+    <div class="grid g3">
+      <div class="card"><div class="stat">4.8 M</div><p>ataques de phishing en 2024 (APWG) — récord histórico</p></div>
+      <div class="card"><div class="stat">&lt; 24 h</div><p>vida útil típica de un sitio phishing antes de ser bloqueado</p></div>
+      <div class="card"><div class="stat">$2.8 B</div><p>en pérdidas por BEC solo en EE. UU.</p></div>
+    </div>
+    <h3>¿Por qué fallan las defensas clásicas?</h3>
+    <ul>
+      <li><b>Listas negras</b> (Google Safe Browsing): reactivas — el sitio ya hizo daño antes de listarse.</li>
+      <li><b>Heurísticas manuales</b>: requieren mantenimiento constante y se evaden fácil.</li>
+    </ul>
+    <p style="margin-top:.8rem">→ <span class="accent">Machine Learning</span>: aprende patrones de los datos en vez de codificar reglas.</p>
+  </section>
+
+  <!-- 3 -->
+  <section class="slide">
+    <div class="kicker">Trabajo relacionado</div>
+    <h2>15 años de investigación — una brecha en común</h2>
+    <table>
+      <tr><th>Trabajo</th><th>Técnica</th><th>Datos</th><th>Acc.</th><th>Tiempo real</th></tr>
+      <tr><td>Mohammad '12</td><td>Feature eng.</td><td>2 500</td><td>84%</td><td><span class="tag t-bad">No</span></td></tr>
+      <tr><td>Mohammad '14</td><td>SSNN</td><td>11 055</td><td>~97%</td><td><span class="tag t-bad">No</span></td></tr>
+      <tr><td>Sahingoz '19</td><td>RF + NLP</td><td>73 575</td><td>97.3%</td><td><span class="tag t-bad">No</span></td></tr>
+      <tr><td>Vrbančič '20</td><td>XGBoost</td><td>88 647</td><td>~97.6%</td><td><span class="tag t-bad">No</span></td></tr>
+      <tr class="hl"><td>Este trabajo</td><td>MLP+RF+SVM</td><td>11 055</td><td>97.2%</td><td><span class="tag t-ok">Sí</span></td></tr>
+    </table>
+    <p style="margin-top:1.2rem">Todos tratan el phishing como un <b>experimento offline</b>. Ninguno expone un
+       <span class="accent">servicio que clasifique una URL nueva bajo demanda</span>. Esa es nuestra contribución.</p>
+  </section>
+
+  <!-- 4 -->
+  <section class="slide">
+    <div class="kicker">Datos</div>
+    <h2>Dataset UCI Phishing Websites</h2>
+    <div class="two">
+      <div>
+        <ul>
+          <li><b>11 055</b> instancias etiquetadas</li>
+          <li><b>30 features</b> en 4 categorías</li>
+          <li>Codificación ternaria: <span class="ok">+1</span> legítimo, <span class="warn">0</span> sospechoso, <span class="bad">−1</span> phishing</li>
+          <li>Clases balanceadas: 55.7% legítimo / 44.3% phishing</li>
+        </ul>
+        <h3>Categorías</h3>
+        <span class="pill">Address Bar (12)</span><span class="pill">Abnormal (6)</span>
+        <span class="pill">HTML/JS (5)</span><span class="pill">Domain (7)</span>
+      </div>
+      <div class="card">
+        <h3>Ejemplos de features</h3>
+        <p><code>having_IP_Address</code> · <code>URL_Length</code> · <code>SSLfinal_State</code> ·
+           <code>URL_of_Anchor</code> · <code>age_of_domain</code> · <code>DNSRecord</code></p>
+        <p style="margin-top:.6rem; color:var(--muted)">El valor <b>0</b> (sospechoso) aporta información
+           que un flag binario perdería → no se binariza.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5 -->
+  <section class="slide center">
+    <div class="kicker">Implementación</div>
+    <h2>Arquitectura del sistema</h2>
+    <img src="figures/fig_pipeline.png" alt="pipeline">
+    <p class="lead" style="margin-top:1rem">Una rama <b>offline</b> entrena y persiste; una rama <b>en tiempo real</b> reutiliza el modelo para clasificar URLs nuevas.</p>
+  </section>
+
+  <!-- 6 -->
+  <section class="slide center">
+    <div class="kicker">Implementación · Modelo</div>
+    <h2>Red neuronal MLP</h2>
+    <img src="figures/fig_mlp.png" alt="mlp">
+    <p class="lead" style="margin-top:1rem">128→64→32→1 · BatchNorm + Dropout + L2 + Early Stopping · 15 105 parámetros</p>
+  </section>
+
+  <!-- 7 -->
+  <section class="slide">
+    <div class="kicker">Implementación · Detección en tiempo real</div>
+    <h2>Extractor de features desde una URL</h2>
+    <div class="grid g2">
+      <div class="card"><h3 class="ok">Medido en vivo (24/30)</h3>
+        <ul>
+          <li><b>URL</b>: IP, longitud, acortadores, <code>@</code>, subdominios (tldextract)</li>
+          <li><b>Transporte</b>: handshake TLS real, conteo de redirects</li>
+          <li><b>HTML/JS</b>: anchors/links externos, SFH, iframe, pop-ups (BeautifulSoup)</li>
+          <li><b>Red</b>: registros DNS, edad de dominio vía WHOIS</li>
+        </ul>
+      </div>
+      <div class="card"><h3 class="warn">Honestidad: 6/30 con default</h3>
+        <p>Dependen de servicios <b>descontinuados</b>:</p>
+        <ul>
+          <li><code>web_traffic</code> → Alexa (cerrado 2022)</li>
+          <li><code>Page_Rank</code> → Toolbar PageRank (2016)</li>
+          <li><code>Links_pointing</code>, <code>Google_Index</code>, <code>Statistical_report</code></li>
+        </ul>
+        <p style="margin-top:.5rem">Cada feature reporta su <b>procedencia</b> (<span class="tag t-ok">measured</span> / <span class="tag" style="background:#3f3f46;color:#d4d4d8">default</span>).</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 8 -->
+  <section class="slide">
+    <div class="kicker">Implementación · Servicio</div>
+    <h2>API REST + demo web (FastAPI)</h2>
+    <div class="grid g3">
+      <div class="card"><h3><code>POST /predict/features</code></h3><p>Clasifica un vector de 30 valores.</p></div>
+      <div class="card"><h3><code>POST /predict/url</code></h3><p>Extrae features de una URL cruda y devuelve veredicto, confianza y procedencia.</p></div>
+      <div class="card"><h3><code>GET /</code></h3><p>Demo web interactiva para probar cualquier URL en vivo.</p></div>
+    </div>
+    <p style="margin-top:1.2rem; text-align:center" class="lead">⏱️ Inferencia sub-segundo · 🎬 <b>Demo en vivo</b>: <code>uvicorn src.api_phishing:app</code> → <code>localhost:8000</code></p>
+  </section>
+
+  <!-- 9 -->
+  <section class="slide">
+    <div class="kicker">Resultados</div>
+    <h2>Desempeño en el test set (1 659 muestras)</h2>
+    <table>
+      <tr><th>Modelo</th><th>Accuracy</th><th>Precision</th><th>Recall</th><th>F1</th><th>AUC</th></tr>
+      <tr><td>Random Forest</td><td>0.972</td><td>0.969</td><td>0.981</td><td>0.975</td><td>0.996</td></tr>
+      <tr><td>SVM (RBF)</td><td>0.946</td><td>0.935</td><td>0.971</td><td>0.953</td><td>0.987</td></tr>
+      <tr class="hl"><td>MLP (propuesto)</td><td>0.965</td><td>0.951</td><td><b>0.988</b></td><td>0.969</td><td>0.994</td></tr>
+    </table>
+    <p style="margin-top:1.2rem">El MLP logra el <span class="accent">recall más alto (98.8%)</span> — la métrica decisiva en seguridad:
+       un <b>falso negativo</b> es un sitio phishing que llega al usuario.</p>
+  </section>
+
+  <!-- 10 -->
+  <section class="slide center">
+    <div class="kicker">Resultados · Análisis</div>
+    <h2>Solo 11 falsos negativos de 924</h2>
+    <div class="two">
+      <img src="figures/confusion_mlp.png" alt="confusion" style="max-height:54vh">
+      <div>
+        <ul>
+          <li><b>TP = 913</b>, <b>FN = 11</b> → recall 98.8%</li>
+          <li><b>FP = 47</b>: solo molestan al usuario con una alerta</li>
+          <li>El MLP prioriza <span class="accent">atrapar phishing</span> sobre evitar falsas alarmas — el balance correcto para un filtro de seguridad.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 11 -->
+  <section class="slide center">
+    <div class="kicker">Resultados · Análisis</div>
+    <h2>Curvas ROC — los tres superan 0.98 AUC</h2>
+    <img src="figures/roc_comparison.png" alt="roc">
+    <p class="lead" style="margin-top:.8rem">MLP y Random Forest prácticamente indistinguibles; entrenamiento estable sin sobreajuste.</p>
+  </section>
+
+  <!-- 12 -->
+  <section class="slide">
+    <div class="kicker">Discusión</div>
+    <h2>Limitaciones (honestas)</h2>
+    <ul>
+      <li><b>Antigüedad del dataset (2014)</b>: las tácticas de phishing evolucionaron; las métricas absolutas pueden sobreestimar el desempeño actual.</li>
+      <li><b>Shift de distribución</b>: features cuyas fuentes (Alexa, PageRank) ya no existen → se usan defaults. La procedencia lo hace explícito.</li>
+      <li><b>Extracción de contenido</b>: requiere descargar la página → latencia y defensas anti-scraping.</li>
+    </ul>
+    <h3>Trabajo futuro</h3>
+    <ul>
+      <li>Reentrenar con dataset moderno de features 100% reproducibles online (léxicas de URL).</li>
+      <li>Caché y batching asíncrono en la API; confianza calibrada que marque veredictos de baja evidencia.</li>
+    </ul>
+  </section>
+
+  <!-- 13 -->
+  <section class="slide center">
+    <h1>Conclusión</h1>
+    <p class="lead" style="max-width:55ch">Construimos un sistema <span class="accent">end-to-end</span>: un MLP regularizado con
+       <b>96.5% accuracy y 98.8% recall</b>, más un <b>servicio de detección en tiempo real</b>
+       (extractor + API + demo) — el componente desplegable ausente en los trabajos fundacionales.</p>
+    <p style="margin-top:2rem" class="big">¡Gracias!</p>
+    <p class="lead">Preguntas · github.com/GabrielFallas/PF3325-Phishing-Websites</p>
+  </section>
+
+</div>
+
+<div class="nav">
+  <button onclick="go(-1)">◀</button>
+  <span id="counter" style="color:#94a3b8; min-width:64px; text-align:center;"></span>
+  <button onclick="go(1)">▶</button>
+</div>
+
+<script>
+  const slides=[...document.querySelectorAll('.slide')];
+  let i=0;
+  function render(){
+    slides.forEach((s,k)=>s.classList.toggle('active',k===i));
+    document.getElementById('counter').textContent=(i+1)+' / '+slides.length;
+    document.getElementById('bar').style.width=((i+1)/slides.length*100)+'%';
+  }
+  function go(d){ i=Math.max(0,Math.min(slides.length-1,i+d)); render(); }
+  document.addEventListener('keydown',e=>{
+    if(['ArrowRight','PageDown',' '].includes(e.key)) go(1);
+    if(['ArrowLeft','PageUp'].includes(e.key)) go(-1);
+    if(e.key==='Home'){i=0;render();}
+    if(e.key==='End'){i=slides.length-1;render();}
+  });
+  render();
+</script>
+</body>
+</html>
