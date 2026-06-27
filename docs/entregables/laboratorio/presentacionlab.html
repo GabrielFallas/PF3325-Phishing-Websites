@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lab — API REST de Detección de Phishing | PF3325</title>
+<style>
+  :root{
+    --bg:#0b1220; --slide:#0f172a; --card:#1e293b; --accent:#38bdf8;
+    --accent2:#818cf8; --ok:#22c55e; --bad:#ef4444; --warn:#facc15; --muted:#94a3b8;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{height:100%;}
+  body{font-family:system-ui,"Segoe UI",Roboto,sans-serif; background:var(--bg);
+       color:#e2e8f0; overflow:hidden;}
+  .deck{height:100vh; width:100vw; position:relative;}
+  .slide{position:absolute; inset:0; display:none; flex-direction:column;
+         justify-content:center; padding:5vh 7vw; animation:fade .35s ease;}
+  .slide.active{display:flex;}
+  @keyframes fade{from{opacity:0; transform:translateY(12px);} to{opacity:1; transform:none;}}
+  h1{font-size:clamp(1.8rem,4.2vw,3.2rem); line-height:1.1; margin-bottom:.4em;}
+  h2{font-size:clamp(1.4rem,3vw,2.2rem); color:var(--accent); margin-bottom:.7em;}
+  h3{font-size:clamp(1rem,1.7vw,1.3rem); color:var(--accent2); margin:.6em 0 .3em;}
+  p,li{font-size:clamp(1rem,1.7vw,1.35rem); line-height:1.5; color:#cbd5e1;}
+  ul{margin-left:1.3em; margin-top:.4em;}
+  li{margin:.45em 0;}
+  .lead{color:var(--muted); font-size:clamp(1.05rem,2vw,1.5rem);}
+  .big{font-size:clamp(2.4rem,6vw,4.5rem); font-weight:800; color:#fff;}
+  .accent{color:var(--accent);} .ok{color:var(--ok);} .bad{color:var(--bad);}
+  .warn{color:var(--warn);}
+  .grid{display:grid; gap:1.2rem; margin-top:1rem;}
+  .g2{grid-template-columns:1fr 1fr;} .g3{grid-template-columns:1fr 1fr 1fr;}
+  .card{background:var(--card); border:1px solid #334155; border-radius:14px;
+        padding:1.1rem 1.3rem;}
+  .card h3{margin-top:0;}
+  .center{align-items:center; text-align:center;}
+  table{width:100%; border-collapse:collapse; margin-top:1rem; font-size:clamp(.9rem,1.6vw,1.2rem);}
+  th,td{padding:.5rem .7rem; border-bottom:1px solid #334155; text-align:left;}
+  th{color:var(--accent);}
+  code{background:#0b1220; padding:.15em .45em; border-radius:5px; color:#7dd3fc; font-size:.9em;}
+  pre{background:#0b1220; border:1px solid #334155; border-radius:10px; padding:1rem 1.2rem;
+      font-size:clamp(.78rem,1.4vw,1rem); color:#e2e8f0; overflow-x:auto; margin-top:.6rem;}
+  pre .kw{color:#c084fc;} pre .st{color:#86efac;} pre .cm{color:#64748b; font-style:italic;}
+  .tag{display:inline-block; padding:.15em .6em; border-radius:6px; font-size:.78em; font-weight:700;}
+  .t-get{background:rgba(34,197,94,.18); color:var(--ok);}
+  .t-post{background:rgba(56,189,248,.18); color:var(--accent);}
+  .nav{position:absolute; bottom:2vh; left:50%; transform:translateX(-50%);
+       display:flex; gap:.5rem; align-items:center; z-index:10;}
+  .nav button{background:var(--card); color:#e2e8f0; border:1px solid #334155;
+       border-radius:8px; padding:.35rem .7rem; cursor:pointer; font-size:1rem;}
+  .nav button:hover{border-color:var(--accent);}
+  .bar{position:fixed; top:0; left:0; height:4px; background:var(--accent); z-index:20;
+       transition:width .25s;}
+  .kicker{color:var(--accent2);font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+          font-size:.85rem;margin-bottom:.6em;}
+  .two{display:grid; grid-template-columns:1fr 1fr; gap:2rem; align-items:start;}
+  .num{font-size:clamp(2rem,4.5vw,3.2rem); font-weight:800; color:var(--accent);}
+</style>
+</head>
+<body>
+<div class="bar" id="bar"></div>
+<div class="deck" id="deck">
+
+  <!-- 1 — Portada -->
+  <section class="slide active center">
+    <div class="kicker">PF3325 — Laboratorio</div>
+    <h1>API REST de Detección<br>de Phishing en Tiempo Real</h1>
+    <p class="lead" style="margin-top:1.2rem">Gabriel Fallas &nbsp;·&nbsp; Valeria Chinchilla</p>
+    <p class="lead">Universidad de Costa Rica — 2026</p>
+  </section>
+
+  <!-- 2 — Contexto -->
+  <section class="slide">
+    <div class="kicker">Contexto</div>
+    <h2>¿Qué queríamos resolver?</h2>
+    <p>Durante el semestre entrenamos un MLP para clasificar sitios de phishing con el dataset UCI (11 055 muestras, 30 features). El modelo quedó guardado en disco con <b>96.5% de accuracy y 98.8% de recall</b>.</p>
+    <h3>El problema</h3>
+    <p>Un modelo guardado en disco no sirve de nada si nadie lo puede usar. Necesitábamos una forma de que alguien mande una URL nueva y reciba un veredicto — sin conocer Python, sin tener el código.</p>
+    <h3>La solución</h3>
+    <p>Una <span class="accent">API REST</span> que recibe una URL, extrae los 30 features en vivo, corre el modelo y devuelve el resultado en menos de un segundo.</p>
+  </section>
+
+  <!-- 3 — Arquitectura general -->
+  <section class="slide">
+    <div class="kicker">Arquitectura</div>
+    <h2>Cómo está organizado el sistema</h2>
+    <div class="grid g3">
+      <div class="card">
+        <h3>① Extractor de features</h3>
+        <p><code>feature_extractor.py</code></p>
+        <p style="margin-top:.5rem">Convierte una URL en los 30 valores que el modelo necesita. Hace requests HTTP reales, handshake TLS, parsea HTML y consulta DNS/WHOIS.</p>
+      </div>
+      <div class="card">
+        <h3>② Modelo + Scaler</h3>
+        <p><code>best_model.keras</code><br><code>scaler.joblib</code></p>
+        <p style="margin-top:.5rem">Se cargan una sola vez al arrancar. El scaler normaliza el vector antes de pasarlo al MLP.</p>
+      </div>
+      <div class="card">
+        <h3>③ API REST</h3>
+        <p><code>api_phishing.py</code></p>
+        <p style="margin-top:.5rem">FastAPI orquesta todo: recibe la solicitud, llama al extractor y al modelo, y devuelve el veredicto en JSON.</p>
+      </div>
+    </div>
+    <p style="margin-top:1.2rem">Arrancar: <code>uvicorn src.api_phishing:app --reload</code> → <code>localhost:8000</code></p>
+  </section>
+
+  <!-- 4 — Endpoints -->
+  <section class="slide">
+    <div class="kicker">Implementación</div>
+    <h2>Los cuatro endpoints</h2>
+    <table>
+      <tr><th>Método</th><th>Ruta</th><th>Qué hace</th></tr>
+      <tr>
+        <td><span class="tag t-get">GET</span></td>
+        <td><code>/</code></td>
+        <td>Demo web interactiva — formulario HTML para probar cualquier URL</td>
+      </tr>
+      <tr>
+        <td><span class="tag t-get">GET</span></td>
+        <td><code>/health</code></td>
+        <td>Estado del servicio: nombre del modelo, parámetros, número de features</td>
+      </tr>
+      <tr>
+        <td><span class="tag t-post">POST</span></td>
+        <td><code>/predict/features</code></td>
+        <td>Recibe un vector de 30 números y devuelve el veredicto</td>
+      </tr>
+      <tr>
+        <td><span class="tag t-post">POST</span></td>
+        <td><code>/predict/url</code></td>
+        <td>Recibe una URL cruda, extrae los features automáticamente y clasifica</td>
+      </tr>
+    </table>
+    <p style="margin-top:1rem">El endpoint más importante es <code>POST /predict/url</code> — hace todo el trabajo solo.</p>
+  </section>
+
+  <!-- 5 — Código: carga del modelo y predict_vector -->
+  <section class="slide">
+    <div class="kicker">Implementación</div>
+    <h2>Carga lazy del modelo y predicción</h2>
+    <div class="two">
+      <div>
+        <p>El modelo y el scaler se cargan <b>una sola vez</b> la primera vez que se hace una predicción — no al arrancar. Esto acelera el startup del servidor.</p>
+        <pre><span class="kw">def</span> _load():
+    <span class="kw">global</span> _model, _scaler
+    <span class="kw">if</span> _model <span class="kw">is</span> <span class="kw">None</span>:
+        _model = tf.keras.models.load_model(MODEL_PATH)
+    <span class="kw">if</span> _scaler <span class="kw">is</span> <span class="kw">None</span>:
+        _scaler = joblib.load(SCALER_PATH)
+    <span class="kw">return</span> _model, _scaler</pre>
+      </div>
+      <div>
+        <p>La función de predicción normaliza el vector con el scaler y pasa por el MLP. Devuelve probabilidades para ambas clases.</p>
+        <pre><span class="kw">def</span> _predict_vector(vector):
+    model, scaler = _load()
+    x = scaler.transform(
+        np.array(vector).reshape(<span class="st">1</span>, <span class="st">-1</span>)
+    )
+    p = model.predict(x, verbose=<span class="st">0</span>)[<span class="st">0</span>][<span class="st">0</span>]
+    <span class="kw">return</span> {
+      <span class="st">"label"</span>: <span class="st">"Legítimo"</span> <span class="kw">if</span> p &gt;= <span class="st">0.5</span> <span class="kw">else</span> <span class="st">"Phishing"</span>,
+      <span class="st">"confidence"</span>: p <span class="kw">if</span> p &gt;= <span class="st">0.5</span> <span class="kw">else</span> <span class="st">1</span> - p,
+      ...
+    }</pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6 — Código: endpoint /predict/url -->
+  <section class="slide">
+    <div class="kicker">Implementación</div>
+    <h2>El endpoint principal: <code>POST /predict/url</code></h2>
+    <div class="two">
+      <div>
+        <pre><span class="cm"># Schema de entrada</span>
+<span class="kw">class</span> URLRequest(BaseModel):
+    url: str
+    timeout: int = <span class="st">6</span>
+
+<span class="cm"># Endpoint</span>
+<span class="kw">@app</span>.post(<span class="st">"/predict/url"</span>)
+<span class="kw">def</span> predict_url(req: URLRequest):
+    vector, provenance, info = \
+        extract_features(req.url, req.timeout)
+
+    result = _predict_vector(vector)
+    result[<span class="st">"info"</span>] = info
+    result[<span class="st">"features"</span>] = {
+        name: {<span class="st">"value"</span>: val,
+               <span class="st">"source"</span>: provenance[name]}
+        <span class="kw">for</span> name, val <span class="kw">in</span>
+        zip(FEATURE_ORDER, vector)
+    }
+    <span class="kw">return</span> result</pre>
+      </div>
+      <div>
+        <h3>Respuesta JSON</h3>
+        <pre>{
+  <span class="st">"label"</span>: <span class="st">"Legítimo"</span>,
+  <span class="st">"is_phishing"</span>: <span class="kw">false</span>,
+  <span class="st">"confidence"</span>: <span class="st">0.9712</span>,
+  <span class="st">"info"</span>: {
+    <span class="st">"registered_domain"</span>: <span class="st">"github.com"</span>,
+    <span class="st">"n_measured"</span>: <span class="st">24</span>,
+    <span class="st">"redirects"</span>: <span class="st">1</span>
+  },
+  <span class="st">"features"</span>: {
+    <span class="st">"having_IP_Address"</span>: {
+      <span class="st">"value"</span>: <span class="st">1</span>,
+      <span class="st">"source"</span>: <span class="st">"measured"</span>
+    }, ...
+  }
+}</pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7 — Extractor de features -->
+  <section class="slide">
+    <div class="kicker">Implementación</div>
+    <h2>El extractor: 24 features en vivo, 6 con default</h2>
+    <div class="grid g2">
+      <div class="card">
+        <h3 class="ok">Medidos en vivo (24/30)</h3>
+        <ul>
+          <li><b>URL:</b> IP, longitud, acortadores, <code>@</code>, subdominios, redirects</li>
+          <li><b>TLS:</b> handshake SSL real, validez del certificado</li>
+          <li><b>HTML:</b> anchors externos, formularios, iframes, pop-ups (BeautifulSoup)</li>
+          <li><b>Red:</b> registros DNS, edad del dominio vía WHOIS</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3 class="warn">Default (6/30)</h3>
+        <p>Dependen de servicios ya discontinuados:</p>
+        <ul>
+          <li><code>web_traffic</code> → Alexa (cerrado 2022)</li>
+          <li><code>Page_Rank</code> → Google Toolbar PageRank (2016)</li>
+          <li><code>Google_Index</code>, <code>Links_pointing_to_page</code>, <code>Statistical_report</code></li>
+        </ul>
+        <p style="margin-top:.6rem">Se usan valores neutros y se reporta la <b>procedencia</b> de cada feature en la respuesta.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 8 — Demo en vivo -->
+  <section class="slide center">
+    <div class="kicker">Demo</div>
+    <h2>Demo en vivo</h2>
+    <div class="grid g3" style="margin-bottom:1.5rem">
+      <div class="card">
+        <div class="num">① </div>
+        <h3>Demo web</h3>
+        <p><code>localhost:8000</code><br>Probar con <code>github.com</code> y con la URL sospechosa de ejemplo</p>
+      </div>
+      <div class="card">
+        <div class="num">② </div>
+        <h3>Docs automáticas</h3>
+        <p><code>localhost:8000/docs</code><br>Swagger UI generado por FastAPI — llamar <code>/predict/url</code> directamente</p>
+      </div>
+      <div class="card">
+        <div class="num">③ </div>
+        <h3>curl / JSON</h3>
+        <p>Llamada directa desde terminal para mostrar la respuesta cruda</p>
+      </div>
+    </div>
+    <pre style="max-width:70ch; margin:0 auto">curl -s -X POST localhost:8000/predict/url \
+  -H <span class="st">"Content-Type: application/json"</span> \
+  -d <span class="st">'{"url":"https://www.github.com"}'</span></pre>
+  </section>
+
+  <!-- 9 — Conclusiones -->
+  <section class="slide center">
+    <div class="kicker">Conclusión</div>
+    <h2>Lo que implementamos</h2>
+    <div class="grid g2" style="margin-bottom:1.5rem; max-width:80ch; margin-left:auto; margin-right:auto;">
+      <div class="card">
+        <h3>Qué hace la API</h3>
+        <ul>
+          <li>Recibe una URL cualquiera</li>
+          <li>Extrae los 30 features en vivo (&lt; 1 segundo)</li>
+          <li>Corre el MLP y devuelve veredicto + confianza + procedencia de cada feature</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Decisiones de diseño</h3>
+        <ul>
+          <li>Carga lazy del modelo (no bloquea el arranque)</li>
+          <li>Pydantic valida entradas automáticamente</li>
+          <li>Provenance explícito para los 6 features con default</li>
+          <li>Demo web incluida en el mismo servicio</li>
+        </ul>
+      </div>
+    </div>
+    <p class="big">¡Gracias!</p>
+  </section>
+
+</div>
+
+<div class="nav">
+  <button onclick="go(-1)">◀</button>
+  <span id="counter" style="color:#94a3b8; min-width:64px; text-align:center;"></span>
+  <button onclick="go(1)">▶</button>
+</div>
+
+<script>
+  const slides=[...document.querySelectorAll('.slide')];
+  let i=0;
+  function render(){
+    slides.forEach((s,k)=>s.classList.toggle('active',k===i));
+    document.getElementById('counter').textContent=(i+1)+' / '+slides.length;
+    document.getElementById('bar').style.width=((i+1)/slides.length*100)+'%';
+  }
+  function go(d){ i=Math.max(0,Math.min(slides.length-1,i+d)); render(); }
+  document.addEventListener('keydown',e=>{
+    if(['ArrowRight','PageDown',' '].includes(e.key)) go(1);
+    if(['ArrowLeft','PageUp'].includes(e.key)) go(-1);
+    if(e.key==='Home'){i=0;render();}
+    if(e.key==='End'){i=slides.length-1;render();}
+  });
+  render();
+</script>
+</body>
+</html>
