@@ -53,7 +53,7 @@ Las principales contribuciones de este trabajo son las siguientes:
 \begin{itemize}
     \item Una comparación sistemática de distintas arquitecturas MLP con diferentes niveles de profundidad y técnicas de regularización, contrastadas con modelos clásicos de referencia como Random Forest y SVM.
 
-    \item Una evaluación experimental del desempeño de los clasificadores sobre el conjunto de datos UCI Phishing Websites.
+    \item Una evaluación experimental del desempeño de los clasificadores sobre el conjunto de datos UCI Phishing Websites, que incluye tanto métricas de clasificación como mediciones de tiempo de inferencia bajo condiciones controladas e idénticas para los tres modelos.
 
     \item El diseño e implementación de un sistema de detección en tiempo real accesible mediante una API REST, un componente ausente en los trabajos previos relacionados.
 \end{itemize}
@@ -335,20 +335,20 @@ En primer lugar, el dataset utilizado, aunque es uno de los referentes más util
 
 En segundo lugar, algunas de las características originales dependen de servicios que ya no existen. Esto genera una diferencia entre las condiciones bajo las cuales el modelo fue entrenado y las condiciones reales de inferencia. Aunque el mecanismo de \textit{provenance} permite identificar esta situación, no elimina completamente el problema del \textit{distribution shift}.
 
-Finalmente, la extracción basada en el contenido de la página introduce un costo adicional en términos de tiempo y complejidad. El sistema necesita descargar y analizar el sitio web objetivo, lo que incrementa la latencia y puede verse afectado por mecanismos de protección implementados por algunos servidores.
+En tercer lugar, si bien los tiempos de inferencia medidos son bajos para los tres modelos (entre $8\,\mu\text{s}$ y $53\,\mu\text{s}$ por muestra), estas mediciones corresponden a inferencia en lote sobre el conjunto de prueba. En un entorno de producción con una única solicitud a la vez, la latencia del clasificador resulta irrelevante comparada con el costo de la extracción de características: descargar el contenido HTML, realizar el handshake TLS y consultar registros DNS puede tomar varios segundos. Esta asimetría entre el costo del clasificador y el costo de la extracción es una limitación inherente al enfoque basado en contenido adoptado en este trabajo.
 
 Estas limitaciones evidencian una brecha frecuente entre los resultados obtenidos en entornos académicos y las condiciones reales de despliegue. Precisamente, uno de los aportes de este trabajo es hacer explícita esa diferencia y proponer mecanismos para manejarla de forma transparente.
 
-Como trabajo futuro, sería recomendable reentrenar el sistema utilizando un dataset más reciente y compuesto exclusivamente por características que puedan reproducirse en línea. También sería interesante incorporar mecanismos de \textit{caching} y procesamiento asíncrono para reducir la latencia, así como implementar modelos de confianza calibrada que permitan advertir al usuario cuando una predicción se haya realizado con evidencia limitada.
+Como trabajo futuro, sería recomendable reentrenar el sistema utilizando un dataset más reciente y compuesto exclusivamente por características léxicas de la URL, eliminando así la dependencia del contenido de la página y reduciendo drásticamente la latencia. También sería valioso incorporar mecanismos de \textit{caching} para sitios ya analizados y modelos de confianza calibrada que adviertan al usuario cuando una predicción se haya realizado con evidencia limitada.
 
 %=========================================================================
 \section{Conclusión}
 %=========================================================================
-Este trabajo desarrolló un sistema completo de detección de phishing que integra un modelo de aprendizaje profundo con una arquitectura funcional de detección en tiempo real. El MLP propuesto alcanzó una exactitud del 96,5\% y un recall del 98,8\%, priorizando la capacidad de identificar sitios maliciosos, que constituye el objetivo más crítico desde una perspectiva de ciberseguridad.
+Este trabajo desarrolló un sistema completo de detección de phishing que integra un modelo de aprendizaje profundo con una arquitectura funcional de detección en tiempo real. El MLP propuesto alcanzó una exactitud del 96,5\% y un recall del 98,8\%, el valor más alto entre los tres modelos evaluados, priorizando la capacidad de identificar sitios maliciosos: el objetivo más crítico desde una perspectiva de ciberseguridad.
 
-Más allá del desempeño predictivo, la principal contribución del trabajo radica en haber transformado un modelo entrenado en una herramienta desplegable, integrando la extracción automática de características, una API REST y una interfaz interactiva de demostración.
+En cuanto al rendimiento de inferencia, el MLP requiere apenas $20{,}2\,\mu\text{s}$ por muestra, frente a los $8{,}1\,\mu\text{s}$ de Random Forest y los $53{,}2\,\mu\text{s}$ de la SVM. Esta diferencia es imperceptible en un servicio de detección real, donde la latencia está dominada por la extracción de características y no por el clasificador. La elección del MLP resulta así justificada tanto por su recall superior como por su velocidad de inferencia adecuada para el entorno de despliegue.
 
-Asimismo, la incorporación de mecanismos de transparencia, como el registro de la procedencia de las características utilizadas en cada predicción, permite evidenciar las limitaciones inherentes a la detección en tiempo real. En conjunto, este trabajo representa un paso hacia la reducción de la brecha entre los experimentos académicos y la implementación práctica de soluciones de seguridad utilizables en entornos reales.
+Más allá del desempeño predictivo, la principal contribución del trabajo radica en haber transformado un modelo entrenado en una herramienta desplegable, integrando la extracción automática de características, una API REST y una interfaz interactiva de demostración. La incorporación del mecanismo de \textit{provenance} permite hacer explícitas las limitaciones de la detección en tiempo real cuando algunos servicios de terceros ya no están disponibles. En conjunto, este trabajo representa un paso concreto hacia la reducción de la brecha entre los experimentos académicos y la implementación práctica de soluciones de seguridad utilizables en entornos reales.
 \bibliographystyle{IEEEtran}
 \bibliography{referencias}
 
