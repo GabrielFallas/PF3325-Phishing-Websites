@@ -35,7 +35,7 @@ except Exception:
 
 import tensorflow as tf  # noqa: E402
 
-from feature_extractor import extract_features, FEATURE_ORDER  # noqa: E402
+from .feature_extractor import extract_features, FEATURE_ORDER  # noqa: E402
 
 # --------------------------------------------------------------------------- #
 # Model loading
@@ -186,7 +186,7 @@ DEMO_HTML = """<!DOCTYPE html>
     <div class="examples">Ejemplos:
       <a onclick="setUrl('https://www.github.com')">github.com</a> &middot;
       <a onclick="setUrl('https://www.wikipedia.org')">wikipedia.org</a> &middot;
-      <a onclick="setUrl('http://192.168.0.1/login@secure-update.com')">URL sospechosa</a>
+      <a onclick="setUrl('https://secure-paypal-verify.com')">URL sospechosa</a>
     </div>
     <div id="result">
       <div id="verdict" class="verdict"></div>

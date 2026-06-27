@@ -1,130 +1,97 @@
-# Entrega 5 — Guion de Presentación (10–12 min)
+# Guion de Presentación — Entrega 5 (~10 min)
 
-> **Curso:** PF3325 – Redes · **Fecha:** Miércoles 1 de julio de 2026
+> **Fecha:** 1 de julio de 2026
 > **Presentadores:** Gabriel Fallas & Valeria Chinchilla
-> **Material:** `presentacion.html` (13 slides) + demo en vivo de la API
+> **Material:** `presentacion.html` (9 slides) + demo en vivo (`localhost:8000`)
 
-## Cómo presentar
+## Antes de empezar
 
-1. Abrir `presentacion.html` en el navegador (pantalla completa con `F11`).
-2. Navegar con `→ / ←` (o barra espaciadora). La barra superior marca el progreso.
-3. Antes de empezar, dejar la API corriendo en otra pestaña para la demo:
-   ```bash
-   uvicorn src.api_phishing:app --reload     # luego abrir http://localhost:8000
-   ```
+- Abrir `presentacion.html` en el navegador (F11 para pantalla completa)
+- Dejar la API corriendo en otra pestaña:
+  ```bash
+  uvicorn src.api_phishing:app --reload
+  ```
+- Navegar con `→ / ←` o barra espaciadora
 
-## Reparto sugerido
-- **Gabriel:** slides 1–6 (motivación → modelo)
-- **Valeria:** slides 7–13 (tiempo real → conclusión) + demo en vivo
-
----
-
-## Guion por slide
-
-### Slide 1 — Portada · (0:00–0:30)
-> "Buenos días. Somos Gabriel y Valeria. Nuestro proyecto es la detección de
-> sitios de phishing con redes neuronales, y en esta entrega final dimos el paso
-> de la clasificación offline a la **detección en tiempo real**."
-
-### Slide 2 — Motivación · (0:30–2:00)
-> "El phishing no para de crecer: la APWG registró **4.8 millones** de ataques en
-> 2024, un récord. Lo crítico es que un sitio vive **menos de 24 horas** antes de
-> ser bloqueado — para entonces ya robó credenciales."
->
-> "Las defensas clásicas se quedan cortas: las **listas negras** son reactivas y
-> las **heurísticas manuales** se evaden. Por eso usamos **machine learning**:
-> aprende los patrones en vez de codificar reglas a mano."
-
-### Slide 3 — Trabajo relacionado · (2:00–3:00)
-> "Hay 15 años de investigación, desde Mohammad en 2012 hasta ensembles modernos
-> con más de 97% de accuracy. Pero **todos comparten una limitación**: tratan el
-> problema como un experimento offline. Ninguno publica un **servicio que reciba
-> una URL nueva y la clasifique al instante**. Esa brecha es nuestra contribución."
-
-### Slide 4 — Dataset · (3:00–4:00)
-> "Usamos el dataset UCI Phishing Websites: **11 055 sitios** y **30 features** en
-> cuatro categorías. La codificación es ternaria: +1 legítimo, 0 sospechoso, −1
-> phishing. Mantenemos el 0 porque aporta información que un flag binario
-> perdería. Las clases están balanceadas, así que no hace falta tratamiento
-> especial de desbalance."
-
-### Slide 5 — Arquitectura del sistema · (4:00–4:45)
-> "Este es el sistema completo. Arriba, la rama **offline**: dataset →
-> preprocesamiento → entrenamiento → evaluación → persistencia del modelo y el
-> scaler. Abajo, la rama de **tiempo real** reutiliza esos artefactos: URL →
-> extractor → scaler → MLP → veredicto. Ambas comparten el mismo modelo."
-
-### Slide 6 — Modelo MLP · (4:45–5:45)
-> "La red es un MLP: capas densas de 128, 64 y 32 neuronas y una salida sigmoide.
-> Para evitar sobreajuste combinamos **Batch Normalization, Dropout, regularización
-> L2 y Early Stopping**. Son apenas 15 105 parámetros — ligero y rápido."
->
-> *(Transición a Valeria.)*
-
-### Slide 7 — Extractor de features · (5:45–7:00)
-> "El corazón de la parte en tiempo real es el **extractor**: convierte una URL
-> cruda en los 30 features. De la URL sacamos longitud, IP, acortadores; hacemos
-> un **handshake TLS real**, contamos redirects, parseamos el HTML para anchors,
-> formularios e iframes, y consultamos **DNS y WHOIS**."
->
-> "Pero somos **honestos**: 6 de los 30 features dependían de servicios que **ya
-> no existen** — Alexa cerró en 2022, el PageRank público en 2016. Para esos
-> usamos un valor por defecto y **reportamos la procedencia** de cada feature:
-> cuáles se midieron en vivo y cuáles no. En un sitio normal medimos **24 de 30**."
-
-### Slide 8 — API + demo · (7:00–7:45)
-> "Todo se expone con **FastAPI** en tres endpoints: clasificar un vector,
-> clasificar una URL cruda, y una demo web. La inferencia es **sub-segundo**.
-> Ahora lo vemos funcionando."
->
-> **➡️ DEMO EN VIVO** (cambiar a `localhost:8000`):
-> - Probar `github.com` → debe dar **Legítimo** con alta confianza.
-> - Probar la URL sospechosa de ejemplo → mostrar la tabla de features y la
->   etiqueta `measured` / `default`.
-> - Resaltar el contador "24/30 features medidas en vivo".
-
-### Slide 9 — Resultados · (7:45–9:00)
-> "Evaluamos los tres modelos en el mismo test set de 1 659 muestras. Random
-> Forest lidera en accuracy con 97.2%, pero miren el **recall**: el **MLP logra
-> 98.8%**, el más alto de todos. En seguridad el recall manda — un falso negativo
-> es un sitio phishing que **sí llega al usuario**."
-
-### Slide 10 — Matriz de confusión · (9:00–9:45)
-> "Aquí se ve por qué: el MLP solo deja pasar **11 sitios phishing de 924**. Tiene
-> 47 falsos positivos, pero esos apenas muestran una alerta al usuario. El modelo
-> prioriza **atrapar el phishing** — el balance correcto para un filtro."
-
-### Slide 11 — ROC · (9:45–10:15)
-> "Las curvas ROC confirman que los tres modelos están muy por encima del azar,
-> todos sobre 0.98 de AUC. MLP y Random Forest son casi indistinguibles, y el
-> entrenamiento fue estable, sin sobreajuste gracias a la regularización."
-
-### Slide 12 — Limitaciones · (10:15–11:00)
-> "Somos transparentes con las limitaciones: el dataset es de 2014, hay un shift
-> de distribución por los servicios desaparecidos, y descargar la página añade
-> latencia. A futuro: reentrenar con un dataset moderno de features léxicas
-> 100% reproducibles, y agregar caché y confianza calibrada a la API."
-
-### Slide 13 — Conclusión · (11:00–12:00)
-> "En resumen: construimos un sistema **end-to-end**. Un MLP con 96.5% de accuracy
-> y 98.8% de recall, **más un servicio de detección en tiempo real** — extractor,
-> API y demo — que es justo el componente desplegable que faltaba en los trabajos
-> fundacionales. Gracias, ¿preguntas?"
+## Reparto
+- **Gabriel:** slides 1–4 (portada → trabajo relacionado)
+- **Valeria:** slides 5–9 (implementación → conclusiones) + demo en vivo
 
 ---
 
-## Posibles preguntas (Q&A)
+## Guion
 
-- **¿Por qué el MLP si Random Forest da más accuracy?** Por el recall (98.8% vs
-  98.1%) y porque la red es la base extensible del proyecto (curso de redes
-  neuronales). RF queda como baseline fuerte y barato.
-- **¿Qué pasa si la página no carga?** Caen los features medidos en vivo y el
-  veredicto se apoya en señales solo-URL; la confianza baja y la procedencia lo
-  refleja. Es una propiedad inherente de la extracción en tiempo real.
-- **¿Cómo evitan el data leakage?** El `StandardScaler` se ajusta **solo** con el
-  split de entrenamiento; validación y test usan esa misma transformación.
-- **¿Es seguro el scraping?** Se hace con timeout corto y sin ejecutar JS; para
-  producción se añadiría sandboxing y rate-limiting.
+### Slide 1 — Portada · (0:00–0:15) — *Gabriel*
+"Buenas, somos Gabriel y Valeria. Vamos a presentar nuestro proyecto de detección de sitios de phishing con redes neuronales."
 
 ---
-*Entrega 5 – PF3325 Redes | Gabriel Fallas & Valeria Chinchilla | Julio 2026*
+
+### Slide 2 — Introducción / Contexto · (0:15–1:15) — *Gabriel*
+"El phishing es básicamente cuando alguien crea un sitio falso que parece legítimo para robarte la contraseña o los datos bancarios.
+
+Lo que nosotros construimos es un sistema completo para detectar esos sitios. Usamos el dataset UCI Phishing Websites, que tiene 11 055 sitios etiquetados con 30 características cada uno. Y lo importante es que no nos quedamos solo en el experimento — lo pusimos a funcionar como un servicio real."
+
+---
+
+### Slide 3 — Motivación · (1:15–2:15) — *Gabriel*
+"El problema es bastante serio: la APWG reportó 4.8 millones de ataques de phishing en 2024, el récord histórico. Y lo que lo hace difícil de combatir es que un sitio de phishing típicamente vive menos de 24 horas antes de ser bloqueado — para ese momento ya hizo el daño.
+
+Las defensas clásicas no alcanzan ese ritmo. Las listas negras son reactivas y las reglas manuales se evaden fácil. Por eso tiene sentido usar machine learning: el modelo aprende los patrones de los datos en vez de que alguien los codifique a mano."
+
+---
+
+### Slide 4 — Trabajo relacionado · (2:15–3:15) — *Gabriel*
+"Hay unos 15 años de investigación en esto. Varios grupos llegaron a 97-98% de accuracy con distintas técnicas. Pero si ven la tabla, todos tienen algo en común: ninguno hizo un servicio real. Solo clasificaron datasets estáticos en un experimento académico.
+
+Esa es exactamente la brecha que nosotros cerramos — hacer algo que funcione con una URL nueva, en tiempo real."
+
+---
+
+### Slide 5 — Implementación: clasificación asíncrona · (3:15–4:45) — *Valeria*
+"La primera parte de la implementación es la clasificación asíncrona, que fue el trabajo del inicio del semestre.
+
+Tomamos el dataset, lo preprocesamos con StandardScaler y lo dividimos en 70% entrenamiento, 15% validación y 15% test. Entrenamos tres modelos: Random Forest, SVM y el MLP que es nuestra red neuronal. El MLP tiene tres capas ocultas de 128, 64 y 32 neuronas, con Batch Normalization, Dropout y Early Stopping para no sobreajustar. Todo el modelo y el scaler quedan guardados en disco para usarlos en tiempo real."
+
+---
+
+### Slide 6 — Implementación: clasificación en tiempo real · (4:45–6:15) — *Valeria*
+"La segunda parte es la clasificación en tiempo real, y en esta entrega hicimos dos cosas.
+
+La primera es la API REST con FastAPI. Recibe una URL, extrae los 30 features en vivo — hace el handshake TLS real, baja el HTML, consulta DNS y WHOIS — y devuelve el veredicto en menos de un segundo. 24 de los 30 features se miden en vivo; 6 no se pueden medir porque los servicios de donde venían ya no existen, como Alexa que cerró en 2022. Originalmente esta API era el entregable principal de esta entrega, pero se decidió moverla al laboratorio.
+
+La segunda cosa que hicimos fue agregar una comparación de tiempos de inferencia entre los tres modelos — 50 repeticiones, 1 659 muestras, tiempo promedio por muestra.
+
+*[Demo en vivo → localhost:8000]*
+Probemos con github.com... vemos que sale Legítimo, y la tabla muestra qué features se midieron en vivo y cuáles son default."
+
+---
+
+### Slide 7 — Resultados: métricas · (6:15–7:30) — *Valeria*
+"Evaluamos los tres modelos con el test set de 1 659 muestras que nunca habían visto. Random Forest tiene la mejor accuracy con 97.2%, pero la métrica que más importa en seguridad es el recall — de todos los sitios phishing, ¿cuántos detectamos?
+
+El MLP tiene el recall más alto: 98.8%. Un falso negativo en seguridad es un sitio phishing que llega al usuario y roba sus datos, así que eso es lo que queremos minimizar. Los 47 falsos positivos solo generan una alerta innecesaria, que es mucho menos grave."
+
+---
+
+### Slide 8 — Resultados: tiempos + visualizaciones · (7:30–8:45) — *Valeria*
+"En cuanto a los tiempos: Random Forest es el más rápido con 8 microsegundos por muestra, el MLP tarda 20 y la SVM 53. Pero el punto importante es que en la API real el clasificador no es el cuello de botella — descargar la página puede tardar segundos. Los 20 µs del MLP son irrelevantes, así que elegirlo por su mejor recall no nos cuesta nada en velocidad.
+
+Las figuras confirman lo que dicen los números: solo 11 sitios phishing de 924 se nos escaparon, y las curvas ROC de los tres modelos están todas por encima de 0.98 de AUC."
+
+---
+
+### Slide 9 — Conclusiones · (8:45–9:30) — *Valeria*
+"En resumen: construimos un MLP con 96.5% de accuracy y 98.8% de recall, y lo pusimos a funcionar como un sistema completo con extractor de features, API REST y demo web. La diferencia respecto a los trabajos anteriores es que esto es desplegable — no es solo un experimento.
+
+Siendo honestos, el dataset es de 2014 y el phishing ha evolucionado, así que nuestras métricas pueden estar un poco sobreestimadas para el mundo real de hoy. Gracias, ¿alguna pregunta?"
+
+---
+
+## Posibles preguntas
+
+- **¿Por qué el MLP si Random Forest da más accuracy?** Porque el recall del MLP es más alto (98.8% vs 98.1%), y en seguridad eso es lo que importa. Además es la base del proyecto de redes neuronales del curso.
+- **¿Qué pasa si la página no carga?** El extractor usa solo los features que pudo medir. La confianza baja y la procedencia lo refleja.
+- **¿Cómo evitan data leakage?** El StandardScaler se ajusta solo con el split de entrenamiento; validación y test usan esa misma transformación.
+
+---
+*PF3325 Redes | Gabriel Fallas & Valeria Chinchilla | Julio 2026*

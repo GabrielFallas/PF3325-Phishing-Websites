@@ -293,6 +293,31 @@ Por otra parte, el histórico de entrenamiento (Fig.~\ref{fig:hist}) evidencia u
 \label{fig:hist}
 \end{figure}
 
+\subsection{Rendimiento de inferencia}
+
+Además de las métricas de clasificación, se evaluó el tiempo de inferencia de cada modelo sobre el mismo conjunto de prueba. Para obtener estimaciones estables, se realizaron 50 repeticiones de predicción sobre las 1.659 muestras, descartando la primera ejecución como calentamiento. El tiempo reportado corresponde al promedio por muestra, calculado dividiendo la duración de cada repetición entre el número de muestras. Los resultados se presentan en la Tabla~\ref{tab:timing}.
+
+\begin{table}[t]
+\centering
+\caption{Tiempo de inferencia por muestra (50 repeticiones, 1.659 muestras)}
+\label{tab:timing}
+\begin{tabular}{lcccc}
+\hline
+\textbf{Modelo} & \textbf{Promedio} & \textbf{Mínimo} & \textbf{Máximo} & \textbf{Desv. Est.} \\
+\hline
+Random Forest   & 8{,}1 \textmu s  & 6{,}8 \textmu s  & 8{,}6 \textmu s  & 0{,}4 \textmu s \\
+MLP (propuesto) & 20{,}2 \textmu s & 18{,}6 \textmu s & 67{,}9 \textmu s & 6{,}8 \textmu s \\
+SVM (RBF)       & 53{,}2 \textmu s & 51{,}9 \textmu s & 57{,}1 \textmu s & 0{,}9 \textmu s \\
+\hline
+\end{tabular}
+\end{table}
+
+El modelo más rápido es Random Forest, con un tiempo promedio de $8{,}1\,\mu\text{s}$ por muestra, seguido del MLP con $20{,}2\,\mu\text{s}$ y, finalmente, la SVM con $53{,}2\,\mu\text{s}$. Estos valores corresponden a inferencia en lote sobre un conjunto de prueba; en un escenario de una única URL, los tiempos serían comparables o ligeramente superiores por la sobrecarga de una sola llamada.
+
+La relación entre precisión y velocidad revela compromisos interesantes. Random Forest ofrece la mejor exactitud (97{,}2\,\%) y el menor tiempo de inferencia, lo que lo convierte en una opción atractiva cuando el objetivo principal es la clasificación por lotes. Sin embargo, el MLP alcanza el recall más alto (98{,}8\,\%) a un costo de velocidad moderado: apenas $12{,}1\,\mu\text{s}$ adicionales por muestra respecto a Random Forest, lo que en la práctica es imperceptible en una API de tiempo real. La SVM presenta el mayor tiempo de inferencia y la menor exactitud entre los tres modelos, lo que la posiciona como la opción menos favorable para este problema específico.
+
+En el contexto de una API de detección en tiempo real, la latencia dominante no proviene del clasificador sino de la extracción de características, que implica operaciones de red como resolución DNS, handshake TLS y descarga del contenido HTML. Por esta razón, cualquiera de los tres modelos sería suficientemente rápido para el sistema propuesto, y la elección del MLP se justifica principalmente por su recall superior.
+
 \subsection{Comportamiento end-to-end en tiempo real}
 
 Más allá del desempeño obtenido sobre el dataset, se evaluó el comportamiento del sistema completo en un escenario de uso real. Cuando la página objetivo es accesible y no presenta restricciones, el extractor logra obtener 24 de las 30 características en tiempo real y la API genera un veredicto confiable en menos de un segundo.

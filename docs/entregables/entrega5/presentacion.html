@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Entrega 5 — Detección de Phishing en Tiempo Real | PF3325</title>
+<title>Entrega 5 — Detección de Phishing | PF3325</title>
 <style>
   :root{
     --bg:#0b1220; --slide:#0f172a; --card:#1e293b; --accent:#38bdf8;
@@ -34,12 +34,12 @@
         padding:1.1rem 1.3rem;}
   .card h3{margin-top:0;}
   .stat{font-size:clamp(2rem,5vw,3.6rem); font-weight:800; color:var(--accent);}
-  img{max-width:100%; max-height:62vh; object-fit:contain; border-radius:12px;
+  img{max-width:100%; max-height:58vh; object-fit:contain; border-radius:12px;
       background:#fff; padding:8px;}
   .center{align-items:center; text-align:center;}
   table{width:100%; border-collapse:collapse; margin-top:1rem; font-size:clamp(.9rem,1.6vw,1.25rem);}
   th,td{padding:.55rem .7rem; border-bottom:1px solid #334155; text-align:center;}
-  th{color:var(--accent); } td:first-child,th:first-child{text-align:left;}
+  th{color:var(--accent);} td:first-child,th:first-child{text-align:left;}
   tr.hl td{background:rgba(56,189,248,.12); font-weight:700; color:#fff;}
   code{background:#0b1220; padding:.12em .4em; border-radius:5px; color:#7dd3fc;
        font-size:.92em;}
@@ -47,8 +47,6 @@
        font-weight:700;}
   .t-ok{background:rgba(34,197,94,.18); color:var(--ok);}
   .t-bad{background:rgba(239,68,68,.18); color:var(--bad);}
-  .foot{position:absolute; bottom:2vh; left:7vw; right:7vw; display:flex;
-        justify-content:space-between; color:#475569; font-size:.85rem;}
   .nav{position:absolute; bottom:2vh; left:50%; transform:translateX(-50%);
        display:flex; gap:.5rem; align-items:center; z-index:10;}
   .nav button{background:var(--card); color:#e2e8f0; border:1px solid #334155;
@@ -61,195 +59,188 @@
         padding:.2em .8em;margin:.2em;color:var(--muted);font-size:.9em;}
   .kicker{color:var(--accent2);font-weight:700;letter-spacing:.08em;text-transform:uppercase;
           font-size:.85rem;margin-bottom:.6em;}
+  .section-label{display:inline-block;background:rgba(56,189,248,.12);border:1px solid rgba(56,189,248,.3);
+          border-radius:6px;padding:.2em .8em;font-size:.8rem;font-weight:700;color:var(--accent);
+          letter-spacing:.06em;text-transform:uppercase;margin-bottom:.8em;}
 </style>
 </head>
 <body>
 <div class="bar" id="bar"></div>
 <div class="deck" id="deck">
 
-  <!-- 1 -->
+  <!-- 1 — Portada -->
   <section class="slide active center">
     <div class="kicker">PF3325 — Redes · Entrega 5</div>
     <h1>Detección de Sitios de Phishing<br>con Redes Neuronales</h1>
-    <p class="lead">De la clasificación offline a la <span class="accent">detección en tiempo real</span></p>
-    <p style="margin-top:2rem">Gabriel Fallas &nbsp;·&nbsp; Valeria Chinchilla</p>
+    <p class="lead" style="margin-top:1.2rem">Gabriel Fallas &nbsp;·&nbsp; Valeria Chinchilla</p>
     <p class="lead">Universidad de Costa Rica — 1 de julio de 2026</p>
   </section>
 
-  <!-- 2 -->
+  <!-- 2 — Introducción / Contexto -->
   <section class="slide">
-    <div class="kicker">Motivación</div>
-    <h2>El phishing sigue ganando</h2>
-    <div class="grid g3">
-      <div class="card"><div class="stat">4.8 M</div><p>ataques de phishing en 2024 (APWG) — récord histórico</p></div>
-      <div class="card"><div class="stat">&lt; 24 h</div><p>vida útil típica de un sitio phishing antes de ser bloqueado</p></div>
-      <div class="card"><div class="stat">$2.8 B</div><p>en pérdidas por BEC solo en EE. UU.</p></div>
+    <div class="section-label">Introducción · 1 min</div>
+    <h2>¿Qué es el phishing y qué construimos?</h2>
+    <div class="grid g2">
+      <div>
+        <p>El phishing es un ataque donde un sitio falso imita a uno legítimo para robar credenciales o datos bancarios.</p>
+        <h3>Lo que construimos</h3>
+        <ul>
+          <li>Un clasificador de sitios web (phishing vs legítimo)</li>
+          <li>Entrenado con el dataset <b>UCI Phishing Websites</b>: 11 055 sitios, 30 features, codificación ternaria</li>
+          <li>Desplegado como un <span class="accent">servicio de detección en tiempo real</span></li>
+        </ul>
+      </div>
+      <div class="card" style="align-self:center">
+        <h3>Dataset</h3>
+        <p><b>11 055</b> instancias etiquetadas</p>
+        <p><b>30 features</b> en 4 categorías: URL, HTML/JS, anomalías, dominio</p>
+        <p style="margin-top:.5rem">Clases balanceadas: 55.7% legítimo / 44.3% phishing</p>
+      </div>
     </div>
-    <h3>¿Por qué fallan las defensas clásicas?</h3>
-    <ul>
-      <li><b>Listas negras</b> (Google Safe Browsing): reactivas — el sitio ya hizo daño antes de listarse.</li>
-      <li><b>Heurísticas manuales</b>: requieren mantenimiento constante y se evaden fácil.</li>
-    </ul>
-    <p style="margin-top:.8rem">→ <span class="accent">Machine Learning</span>: aprende patrones de los datos en vez de codificar reglas.</p>
   </section>
 
-  <!-- 3 -->
+  <!-- 3 — Motivación -->
   <section class="slide">
-    <div class="kicker">Trabajo relacionado</div>
+    <div class="section-label">Motivación · 1 min</div>
+    <h2>El problema no para de crecer</h2>
+    <div class="grid g3">
+      <div class="card"><div class="stat">4.8 M</div><p>ataques de phishing en 2024 — récord histórico (APWG)</p></div>
+      <div class="card"><div class="stat">&lt; 24 h</div><p>vida útil típica de un sitio phishing antes de ser bloqueado</p></div>
+      <div class="card"><div class="stat">$2.8 B</div><p>pérdidas por fraude de correo empresarial en EE. UU.</p></div>
+    </div>
+    <h3>¿Por qué machine learning?</h3>
+    <ul>
+      <li><b>Listas negras</b>: reactivas — el sitio ya hizo daño antes de listarse</li>
+      <li><b>Reglas manuales</b>: se evaden fácilmente y requieren mantenimiento constante</li>
+      <li><b>ML</b>: aprende los patrones directamente de los datos, sin codificar reglas a mano</li>
+    </ul>
+  </section>
+
+  <!-- 4 — Trabajo relacionado -->
+  <section class="slide">
+    <div class="section-label">Trabajo relacionado · 1 min</div>
     <h2>15 años de investigación — una brecha en común</h2>
     <table>
-      <tr><th>Trabajo</th><th>Técnica</th><th>Datos</th><th>Acc.</th><th>Tiempo real</th></tr>
-      <tr><td>Mohammad '12</td><td>Feature eng.</td><td>2 500</td><td>84%</td><td><span class="tag t-bad">No</span></td></tr>
-      <tr><td>Mohammad '14</td><td>SSNN</td><td>11 055</td><td>~97%</td><td><span class="tag t-bad">No</span></td></tr>
-      <tr><td>Sahingoz '19</td><td>RF + NLP</td><td>73 575</td><td>97.3%</td><td><span class="tag t-bad">No</span></td></tr>
-      <tr><td>Vrbančič '20</td><td>XGBoost</td><td>88 647</td><td>~97.6%</td><td><span class="tag t-bad">No</span></td></tr>
-      <tr class="hl"><td>Este trabajo</td><td>MLP+RF+SVM</td><td>11 055</td><td>97.2%</td><td><span class="tag t-ok">Sí</span></td></tr>
+      <tr><th>Trabajo</th><th>Técnica</th><th>Acc.</th><th>Tiempo real</th></tr>
+      <tr><td>Mohammad '12</td><td>Feature engineering</td><td>84%</td><td><span class="tag t-bad">No</span></td></tr>
+      <tr><td>Mohammad '14</td><td>J48, RF, SSNN</td><td>~97%</td><td><span class="tag t-bad">No</span></td></tr>
+      <tr><td>Sahingoz '19</td><td>RF + NLP</td><td>97.3%</td><td><span class="tag t-bad">No</span></td></tr>
+      <tr><td>Vrbančič '20</td><td>XGBoost, ensambles</td><td>~97.6%</td><td><span class="tag t-bad">No</span></td></tr>
+      <tr class="hl"><td>Este trabajo</td><td>MLP + RF + SVM</td><td>97.2%</td><td><span class="tag t-ok">Sí</span></td></tr>
     </table>
-    <p style="margin-top:1.2rem">Todos tratan el phishing como un <b>experimento offline</b>. Ninguno expone un
-       <span class="accent">servicio que clasifique una URL nueva bajo demanda</span>. Esa es nuestra contribución.</p>
+    <p style="margin-top:1.2rem">Todos son <b>experimentos offline</b>. Ninguno expone un servicio que clasifique una URL nueva bajo demanda.
+    La <span class="accent">detección en tiempo real desplegable</span> es nuestra contribución original.</p>
   </section>
 
-  <!-- 4 -->
+  <!-- 5 — Implementación: clasificación asíncrona -->
   <section class="slide">
-    <div class="kicker">Datos</div>
-    <h2>Dataset UCI Phishing Websites</h2>
+    <div class="section-label">Implementación · 3 min</div>
+    <h2>Clasificación asíncrona (inicio del semestre)</h2>
     <div class="two">
       <div>
+        <h3>Pipeline offline</h3>
         <ul>
-          <li><b>11 055</b> instancias etiquetadas</li>
-          <li><b>30 features</b> en 4 categorías</li>
-          <li>Codificación ternaria: <span class="ok">+1</span> legítimo, <span class="warn">0</span> sospechoso, <span class="bad">−1</span> phishing</li>
-          <li>Clases balanceadas: 55.7% legítimo / 44.3% phishing</li>
+          <li>Carga del dataset UCI → preprocesamiento con <code>StandardScaler</code></li>
+          <li>División estratificada: 70% train · 15% val · 15% test</li>
+          <li>Entrenamiento del MLP: 128→64→32→1, BatchNorm + Dropout + L2 + Early Stopping</li>
+          <li>Comparación con Random Forest (100 árboles) y SVM (kernel RBF)</li>
+          <li>Modelo y scaler guardados en disco para inferencia</li>
         </ul>
-        <h3>Categorías</h3>
-        <span class="pill">Address Bar (12)</span><span class="pill">Abnormal (6)</span>
-        <span class="pill">HTML/JS (5)</span><span class="pill">Domain (7)</span>
+        <p style="margin-top:.8rem">15 105 parámetros · convergencia en ~45 épocas</p>
+      </div>
+      <div>
+        <img src="figures/fig_mlp.png" alt="MLP architecture">
+      </div>
+    </div>
+  </section>
+
+  <!-- 6 — Implementación: tiempo real -->
+  <section class="slide">
+    <div class="section-label">Implementación · 3 min</div>
+    <h2>Clasificación en tiempo real</h2>
+    <div class="grid g2">
+      <div class="card">
+        <h3>① API REST (FastAPI)</h3>
+        <p>El modelo entrenado se expuso como servicio web. Recibe una URL, extrae los 30 features en vivo y devuelve el veredicto en menos de 1 segundo.</p>
+        <ul style="margin-top:.5rem">
+          <li><b>24/30 features medidos en vivo</b>: URL, TLS, redirects, HTML, DNS, WHOIS</li>
+          <li>6 features con default (Alexa '22, PageRank '16 — servicios ya no existen)</li>
+          <li>Demo web interactiva: <code>localhost:8000</code></li>
+        </ul>
+        <p style="margin-top:.6rem; color:var(--muted); font-size:.9em">Originalmente era el entregable principal de esta entrega; se decidió moverlo al laboratorio.</p>
       </div>
       <div class="card">
-        <h3>Ejemplos de features</h3>
-        <p><code>having_IP_Address</code> · <code>URL_Length</code> · <code>SSLfinal_State</code> ·
-           <code>URL_of_Anchor</code> · <code>age_of_domain</code> · <code>DNSRecord</code></p>
-        <p style="margin-top:.6rem; color:var(--muted)">El valor <b>0</b> (sospechoso) aporta información
-           que un flag binario perdería → no se binariza.</p>
-      </div>
-    </div>
-  </section>
-
-  <!-- 5 -->
-  <section class="slide center">
-    <div class="kicker">Implementación</div>
-    <h2>Arquitectura del sistema</h2>
-    <img src="figures/fig_pipeline.png" alt="pipeline">
-    <p class="lead" style="margin-top:1rem">Una rama <b>offline</b> entrena y persiste; una rama <b>en tiempo real</b> reutiliza el modelo para clasificar URLs nuevas.</p>
-  </section>
-
-  <!-- 6 -->
-  <section class="slide center">
-    <div class="kicker">Implementación · Modelo</div>
-    <h2>Red neuronal MLP</h2>
-    <img src="figures/fig_mlp.png" alt="mlp">
-    <p class="lead" style="margin-top:1rem">128→64→32→1 · BatchNorm + Dropout + L2 + Early Stopping · 15 105 parámetros</p>
-  </section>
-
-  <!-- 7 -->
-  <section class="slide">
-    <div class="kicker">Implementación · Detección en tiempo real</div>
-    <h2>Extractor de features desde una URL</h2>
-    <div class="grid g2">
-      <div class="card"><h3 class="ok">Medido en vivo (24/30)</h3>
-        <ul>
-          <li><b>URL</b>: IP, longitud, acortadores, <code>@</code>, subdominios (tldextract)</li>
-          <li><b>Transporte</b>: handshake TLS real, conteo de redirects</li>
-          <li><b>HTML/JS</b>: anchors/links externos, SFH, iframe, pop-ups (BeautifulSoup)</li>
-          <li><b>Red</b>: registros DNS, edad de dominio vía WHOIS</li>
+        <h3>② Comparación de tiempos de inferencia</h3>
+        <p>Se agregó como implementación adicional en esta entrega: benchmark de los 3 modelos bajo las mismas condiciones.</p>
+        <ul style="margin-top:.5rem">
+          <li>50 repeticiones · 1 659 muestras · tiempo promedio por muestra</li>
+          <li>Métricas: avg, min, max, desviación estándar</li>
+          <li>Resultados guardados en <code>reports/metrics.json</code></li>
         </ul>
       </div>
-      <div class="card"><h3 class="warn">Honestidad: 6/30 con default</h3>
-        <p>Dependen de servicios <b>descontinuados</b>:</p>
-        <ul>
-          <li><code>web_traffic</code> → Alexa (cerrado 2022)</li>
-          <li><code>Page_Rank</code> → Toolbar PageRank (2016)</li>
-          <li><code>Links_pointing</code>, <code>Google_Index</code>, <code>Statistical_report</code></li>
-        </ul>
-        <p style="margin-top:.5rem">Cada feature reporta su <b>procedencia</b> (<span class="tag t-ok">measured</span> / <span class="tag" style="background:#3f3f46;color:#d4d4d8">default</span>).</p>
-      </div>
     </div>
   </section>
 
-  <!-- 8 -->
+  <!-- 7 — Resultados: métricas de clasificación -->
   <section class="slide">
-    <div class="kicker">Implementación · Servicio</div>
-    <h2>API REST + demo web (FastAPI)</h2>
-    <div class="grid g3">
-      <div class="card"><h3><code>POST /predict/features</code></h3><p>Clasifica un vector de 30 valores.</p></div>
-      <div class="card"><h3><code>POST /predict/url</code></h3><p>Extrae features de una URL cruda y devuelve veredicto, confianza y procedencia.</p></div>
-      <div class="card"><h3><code>GET /</code></h3><p>Demo web interactiva para probar cualquier URL en vivo.</p></div>
-    </div>
-    <p style="margin-top:1.2rem; text-align:center" class="lead">⏱️ Inferencia sub-segundo · 🎬 <b>Demo en vivo</b>: <code>uvicorn src.api_phishing:app</code> → <code>localhost:8000</code></p>
-  </section>
-
-  <!-- 9 -->
-  <section class="slide">
-    <div class="kicker">Resultados</div>
-    <h2>Desempeño en el test set (1 659 muestras)</h2>
+    <div class="section-label">Resultados · 3 min</div>
+    <h2>Comparación de modelos — test set (1 659 muestras)</h2>
     <table>
       <tr><th>Modelo</th><th>Accuracy</th><th>Precision</th><th>Recall</th><th>F1</th><th>AUC</th></tr>
       <tr><td>Random Forest</td><td>0.972</td><td>0.969</td><td>0.981</td><td>0.975</td><td>0.996</td></tr>
       <tr><td>SVM (RBF)</td><td>0.946</td><td>0.935</td><td>0.971</td><td>0.953</td><td>0.987</td></tr>
       <tr class="hl"><td>MLP (propuesto)</td><td>0.965</td><td>0.951</td><td><b>0.988</b></td><td>0.969</td><td>0.994</td></tr>
     </table>
-    <p style="margin-top:1.2rem">El MLP logra el <span class="accent">recall más alto (98.8%)</span> — la métrica decisiva en seguridad:
-       un <b>falso negativo</b> es un sitio phishing que llega al usuario.</p>
-  </section>
-
-  <!-- 10 -->
-  <section class="slide center">
-    <div class="kicker">Resultados · Análisis</div>
-    <h2>Solo 11 falsos negativos de 924</h2>
-    <div class="two">
-      <img src="figures/confusion_mlp.png" alt="confusion" style="max-height:54vh">
-      <div>
-        <ul>
-          <li><b>TP = 913</b>, <b>FN = 11</b> → recall 98.8%</li>
-          <li><b>FP = 47</b>: solo molestan al usuario con una alerta</li>
-          <li>El MLP prioriza <span class="accent">atrapar phishing</span> sobre evitar falsas alarmas — el balance correcto para un filtro de seguridad.</li>
-        </ul>
+    <p style="margin-top:1rem">El MLP tiene el <span class="accent">recall más alto (98.8%)</span>. En seguridad, el recall es la métrica clave:
+    un <b>falso negativo</b> es un sitio phishing que llega al usuario.</p>
+    <div class="grid g2" style="margin-top:1rem">
+      <div class="card">
+        <h3>Matriz de confusión — MLP</h3>
+        <p>Solo <b>11 falsos negativos</b> de 924 sitios phishing (recall 98.8%)</p>
+        <p><b>47 falsos positivos</b>: solo generan una alerta innecesaria</p>
+      </div>
+      <div class="card">
+        <h3>Curvas ROC</h3>
+        <p>Los tres modelos superan <b>AUC 0.98</b></p>
+        <p>MLP y Random Forest son prácticamente indistinguibles</p>
       </div>
     </div>
   </section>
 
-  <!-- 11 -->
-  <section class="slide center">
-    <div class="kicker">Resultados · Análisis</div>
-    <h2>Curvas ROC — los tres superan 0.98 AUC</h2>
-    <img src="figures/roc_comparison.png" alt="roc">
-    <p class="lead" style="margin-top:.8rem">MLP y Random Forest prácticamente indistinguibles; entrenamiento estable sin sobreajuste.</p>
-  </section>
-
-  <!-- 12 -->
+  <!-- 8 — Resultados: tiempos + figuras -->
   <section class="slide">
-    <div class="kicker">Discusión</div>
-    <h2>Limitaciones (honestas)</h2>
-    <ul>
-      <li><b>Antigüedad del dataset (2014)</b>: las tácticas de phishing evolucionaron; las métricas absolutas pueden sobreestimar el desempeño actual.</li>
-      <li><b>Shift de distribución</b>: features cuyas fuentes (Alexa, PageRank) ya no existen → se usan defaults. La procedencia lo hace explícito.</li>
-      <li><b>Extracción de contenido</b>: requiere descargar la página → latencia y defensas anti-scraping.</li>
-    </ul>
-    <h3>Trabajo futuro</h3>
-    <ul>
-      <li>Reentrenar con dataset moderno de features 100% reproducibles online (léxicas de URL).</li>
-      <li>Caché y batching asíncrono en la API; confianza calibrada que marque veredictos de baja evidencia.</li>
-    </ul>
+    <div class="section-label">Resultados · 3 min</div>
+    <h2>Tiempos de inferencia y visualizaciones</h2>
+    <div class="grid g2">
+      <div>
+        <table>
+          <tr><th>Modelo</th><th>Promedio</th><th>Mín</th><th>Máx</th><th>Std</th></tr>
+          <tr><td>Random Forest</td><td>8.1 µs</td><td>6.8 µs</td><td>8.6 µs</td><td>0.4 µs</td></tr>
+          <tr class="hl"><td>MLP (propuesto)</td><td>20.2 µs</td><td>18.6 µs</td><td>67.9 µs</td><td>6.8 µs</td></tr>
+          <tr><td>SVM (RBF)</td><td>53.2 µs</td><td>51.9 µs</td><td>57.1 µs</td><td>0.9 µs</td></tr>
+        </table>
+        <p style="margin-top:.8rem">Metodología: 50 repeticiones · 1 659 muestras · primera ejecución descartada (calentamiento)</p>
+        <p style="margin-top:.6rem">El clasificador <b>no es el cuello de botella</b> en la API — la extracción de features (red, TLS, HTML) tarda segundos. Los 20 µs del MLP son imperceptibles.</p>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:.8rem;">
+        <img src="figures/confusion_mlp.png" alt="confusion matrix" style="max-height:28vh">
+        <img src="figures/roc_comparison.png" alt="ROC curves" style="max-height:28vh">
+      </div>
+    </div>
   </section>
 
-  <!-- 13 -->
+  <!-- 9 — Conclusiones -->
   <section class="slide center">
-    <h1>Conclusión</h1>
-    <p class="lead" style="max-width:55ch">Construimos un sistema <span class="accent">end-to-end</span>: un MLP regularizado con
-       <b>96.5% accuracy y 98.8% recall</b>, más un <b>servicio de detección en tiempo real</b>
-       (extractor + API + demo) — el componente desplegable ausente en los trabajos fundacionales.</p>
+    <div class="section-label">Conclusiones · 1 min</div>
+    <h2>Lo que construimos y lo que aprendimos</h2>
+    <div class="grid g3" style="margin-bottom:1.5rem">
+      <div class="card"><h3>Modelo</h3><p>MLP con <b>96.5% accuracy</b> y <b>98.8% recall</b> — el recall más alto entre los tres modelos evaluados</p></div>
+      <div class="card"><h3>Sistema</h3><p>Extractor de features en tiempo real + API REST + demo web — algo desplegable, no solo un experimento</p></div>
+      <div class="card"><h3>Velocidad</h3><p>20 µs de inferencia por muestra — irrelevante frente a la latencia de extracción de features</p></div>
+    </div>
+    <p class="lead">Limitación honesta: el dataset es de 2014. Las métricas pueden sobreestimar el rendimiento en ataques actuales.</p>
     <p style="margin-top:2rem" class="big">¡Gracias!</p>
-    <p class="lead">Preguntas · github.com/GabrielFallas/PF3325-Phishing-Websites</p>
+    <p class="lead">github.com/GabrielFallas/PF3325-Phishing-Websites</p>
   </section>
 
 </div>
