@@ -1,404 +1,330 @@
-%=========================================================================
-% Entrega 6 - PF3325 Redes
-% Detection of Phishing Websites Using Artificial Neural Networks
-% IEEE conference (two-column) format. Compile with pdflatex + bibtex:
-%   pdflatex main ; bibtex main ; pdflatex main ; pdflatex main
-%=========================================================================
 \documentclass[conference]{IEEEtran}
 \IEEEoverridecommandlockouts
-
 \usepackage{cite}
 \usepackage{amsmath,amssymb,amsfonts}
+\usepackage{algorithmic}
 \usepackage{graphicx}
 \usepackage{textcomp}
 \usepackage{xcolor}
-\usepackage{booktabs}
-\usepackage{array}
-\usepackage{url}
-\usepackage[hidelinks]{hyperref}
+\usepackage{graphicx}
+\usepackage{float}
 
-\graphicspath{{figures/}}
-
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 \begin{document}
 
-\title{Detection of Phishing Websites Using Artificial\\Neural Networks with a Real-Time Detection Service}
+\title{Detección de Sitios Web de Phishing Mediante Redes Neuronales Artificiales}
 
-\author{
-  \IEEEauthorblockN{Gabriel Fallas}
-  \IEEEauthorblockA{\textit{Escuela de Ciencias de la Computaci\'on e Inform\'atica} \\
-    \textit{Universidad de Costa Rica}\\
-    San Jos\'e, Costa Rica \\
-    gabriel.fallas@ucr.ac.cr}
-  \and
-  \IEEEauthorblockN{Valeria Chinchilla}
-  \IEEEauthorblockA{\textit{Escuela de Ciencias de la Computaci\'on e Inform\'atica} \\
-    \textit{Universidad de Costa Rica}\\
-    San Jos\'e, Costa Rica \\
-    valeria.chinchilla@ucr.ac.cr}
+\author{\IEEEauthorblockN{1\textsuperscript{st} Valeria Chinchilla Mejías}
+\IEEEauthorblockA{
+\textit{Universidad de Costa Rica}\\
+Ciudad Universitaria Rodrigo Facio, Costa Rica}
+\and
+\IEEEauthorblockN{2\textsuperscript{nd} Gabriel Fallas López}
+\IEEEauthorblockA{
+\textit{Universidad de Costa Rica}\\
+Ciudad Universitaria Rodrigo Facio, Costa Rica}
 }
 
 \maketitle
 
 \begin{abstract}
-Phishing remains one of the most damaging cybersecurity threats, with the
-Anti-Phishing Working Group recording 4.8 million attacks in 2024. Blacklists
-and hand-written heuristics are inherently reactive and fail against sites that
-live for only a few hours. We present an end-to-end phishing detection system
-built on the UCI Phishing Websites dataset (11,055 instances, 30 features). We
-train a regularized Multilayer Perceptron (MLP) using Batch Normalization,
-Dropout, $L_2$ regularization and Early Stopping, and compare it against Random
-Forest and Support Vector Machine baselines. On a held-out, stratified test set
-the MLP reaches 96.5\% accuracy, 98.8\% recall and an AUC of 0.994, with the
-highest recall of all evaluated models---the most important property for a
-security filter. Beyond offline classification, we contribute a real-time
-detection service: a feature extractor that derives the dataset features from a
-raw URL using the URL string, the fetched HTML/JavaScript, DNS and WHOIS, served
-through a FastAPI REST API with an interactive web demo. We openly discuss the
-limitations of real-time extraction caused by services (Alexa, Google PageRank)
-that no longer exist. The deployable detection component is, to our knowledge,
-absent from the foundational works on this dataset.
+Phishing attacks remain a major cybersecurity threat, with millions of incidents reported each year. Traditional detection methods, such as blacklists and rule-based approaches, struggle to identify new phishing websites that often appear and disappear within a short period. This paper presents a machine learning approach for phishing website detection using the UCI Phishing Websites dataset, which contains 11,055 labeled URLs described by 30 extracted features. A Multilayer Perceptron (MLP) with Dropout, Batch Normalization, and Early Stopping is implemented and compared with Random Forest and Support Vector Machine classifiers. Baseline models achieve accuracies of approximately 97\% and 95\%, respectively. The proposed MLP aims to achieve comparable or improved performance while supporting the development of a real-time phishing detection API. This work provides a comparative analysis of machine learning models and contributes toward a deployable phishing detection system.
 \end{abstract}
 
 \begin{IEEEkeywords}
-phishing detection, neural networks, multilayer perceptron, machine learning,
-cybersecurity, URL classification, real-time inference, REST API
+phishing detection, neural networks, multilayer perceptron, machine learning, cybersecurity, URL classification.
 \end{IEEEkeywords}
 
 %=========================================================================
-\section{Introduction}
+\section{Introducción}
 %=========================================================================
-Phishing is a form of social engineering in which an attacker builds a
-fraudulent website that imitates a legitimate one to trick users into revealing
-credentials, financial details or personal data~\cite{mohammad2012}. The scale
-of the problem is substantial: the Anti-Phishing Working Group (APWG) recorded
-4.8 million phishing attacks during 2024---the highest annual total since the
-organization was founded in 2003---and related Business Email Compromise losses
-exceeded USD~2.8 billion in the United States alone~\cite{apwg2024q4}.
 
-Two classical defensive paradigms dominate practice. \emph{Blacklist}-based
-systems such as Google Safe Browsing keep databases of known malicious URLs.
-While effective against previously reported sites, they are fundamentally
-reactive: a phishing page may be operational for fewer than 24 hours before it
-is reported, listed and taken down, during which thousands of victims can be
-deceived. \emph{Heuristic}-based systems encode expert rules---e.g. ``if the URL
-contains an IP address, flag it''---but require constant manual maintenance and
-are easily evaded once attackers learn the rule set.
+El \textit{phishing} es un tipo de ataque en el que un atacante crea un sitio web falso que imita a uno legítimo con el objetivo de engañar a los usuarios y obtener información sensible, como contraseñas, datos bancarios o información personal~\cite{mohammad2012}. Su impacto ha aumentado considerablemente en los últimos años. El Anti-Phishing Working Group (APWG) registró 4,8 millones de ataques de phishing en 2024, la cifra anual más alta desde su fundación en 2003, mientras que las pérdidas asociadas al fraude por correo electrónico empresarial superaron los 2.800 millones de dólares únicamente en Estados Unidos~\cite{apwg2024q4}.
 
-Machine learning offers an attractive alternative: instead of hand-coding rules,
-a model learns discriminative patterns directly from labeled data. This paper
-investigates Multilayer Perceptron (MLP) neural networks for phishing detection
-on the UCI Phishing Websites dataset~\cite{uci327}. Our contributions are:
+Los métodos tradicionales de detección, como las listas negras y los sistemas basados en reglas, presentan limitaciones importantes. Su naturaleza dificulta la identificación de sitios recién creados y reduce su capacidad para adaptarse a las estrategias cada vez más sofisticadas utilizadas por los atacantes.
 
-\begin{enumerate}
-  \item A regularized MLP trained and evaluated against Random Forest and SVM
-        baselines under an identical preprocessing and split protocol, with a
-        focus on \emph{recall} as the security-critical metric.
-  \item A \textbf{real-time detection service}: a feature extractor that turns a
-        raw URL into the 30 dataset features in real time, wrapped in a FastAPI
-        REST API with an interactive web demo---a deployable component absent
-        from the foundational works on this dataset.
-  \item An honest analysis of the practical limits of real-time feature
-        extraction, caused by third-party services used to build the original
-        dataset that are now defunct.
-\end{enumerate}
+Ante este escenario, el aprendizaje automático surge como una alternativa prometedora. En lugar de depender de reglas definidas manualmente, estos modelos aprenden a diferenciar sitios legítimos de sitios fraudulentos a partir de ejemplos previamente etiquetados, esto da lugar a una detección más flexible, escalable y adaptable.
 
-The remainder of the paper is organized as follows. Section~\ref{sec:related}
-reviews related work. Section~\ref{sec:background} summarizes the theoretical
-background. Section~\ref{sec:method} describes the methodology, and
-Section~\ref{sec:impl} the real-time implementation. Section~\ref{sec:results}
-reports results and analysis, Section~\ref{sec:disc} discusses limitations, and
-Section~\ref{sec:concl} concludes.
+Este trabajo estudia el uso de redes neuronales de tipo perceptrón multicapa (MLP) para la detección de sitios web de phishing utilizando el conjunto de datos \textit{UCI Phishing Websites}~\cite{uci327}. Además del análisis del desempeño predictivo, el objetivo es cerrar la brecha entre los experimentos académicos y las necesidades de una implementación real.
 
-%=========================================================================
-\section{Related Work}\label{sec:related}
-%=========================================================================
-Research on automated phishing detection spans more than fifteen years and has
-evolved from early neural networks to modern deep learning.
-Table~\ref{tab:related} summarizes the most relevant prior work.
+Las principales contribuciones de este trabajo son las siguientes:
 
-\begin{table}[t]
-\caption{Comparison of related works}
-\label{tab:related}
-\centering
-\renewcommand{\arraystretch}{1.2}
-\setlength{\tabcolsep}{3pt}
-\begin{tabular}{@{}lcccc@{}}
-\toprule
-\textbf{Reference} & \textbf{Technique} & \textbf{Size} & \textbf{Best Acc.} & \textbf{Real-time} \\
-\midrule
-Mohammad '12~\cite{mohammad2012} & Feature eng. & 2{,}500 & 84\% & No \\
-Mohammad '14~\cite{mohammad2014} & J48/RF/SSNN & 11{,}055 & $\sim$97\% & No \\
-Sahingoz '19~\cite{sahingoz2019}  & RF + NLP    & 73{,}575 & 97.3\% & No \\
-Vrban\v{c}i\v{c} '20~\cite{vrbancic2020} & XGBoost & 88{,}647 & $\sim$97.6\% & No \\
-Chatterjee '19~\cite{chatterjee2019} & Deep RL & Custom & $\sim$96\% & No \\
-\textbf{This work} & \textbf{MLP+RF+SVM} & \textbf{11{,}055} & \textbf{97.2\%} & \textbf{Yes} \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-A distinction often overlooked concerns the two foundational papers by Mohammad
-\emph{et~al.} The 2012 paper~\cite{mohammad2012} is primarily a \emph{feature
-engineering} exercise: the authors designed and validated automated extraction
-rules for 17 URL and page characteristics using JavaScript and PHP, evaluated on
-2,500 URLs from PhishTank. No production classifier was trained; the
-contribution was a validated feature set and its extraction methodology. The
-2014 paper~\cite{mohammad2014} expanded the dataset to 11,055 samples and 30
-features and compared several classifiers, including a Self-Structuring Neural
-Network (SSNN) that reached roughly 97\% accuracy---the direct predecessor of
-our work and our primary neural baseline.
-
-Sahingoz \emph{et~al.}~\cite{sahingoz2019} added Natural Language Processing
-features computed from the URL string (character $n$-grams and token attributes)
-and reached 97.32\% with Random Forest on 73,575 URLs, showing that feature
-richness matters beyond classifier choice. Vrban\v{c}i\v{c}
-\emph{et~al.}~\cite{vrbancic2020} released larger benchmark datasets and
-established ensemble methods (XGBoost, Random Forest, $\sim$97.6\%) as the
-dominant classical paradigm. Chatterjee and Namin~\cite{chatterjee2019} explored
-Deep Reinforcement Learning, which adapts to evolving tactics at the cost of
-training complexity.
-
-\textbf{Gap addressed.} A consistent limitation across these works is the
-absence of a deployable, real-time detection component: each treats phishing
-detection as an offline experiment---train, evaluate on a held-out set, report
-metrics---without exposing the classifier as a service that scores an arbitrary
-new URL on demand. Our work closes this gap with a complete real-time pipeline
-while keeping a rigorous offline comparison.
-
-%=========================================================================
-\section{Theoretical Background}\label{sec:background}
-%=========================================================================
-\subsection{Phishing Attack Vectors}
-Phishing attacks are commonly grouped into three vectors. \emph{URL-based}
-attacks manipulate the domain name through typosquatting (e.g.
-\texttt{paypa1.com}), Unicode homograph characters, or raw IP addresses that
-bypass domain filtering. \emph{Content-based} attacks replicate the visual
-appearance of a legitimate site and host a form that exfiltrates submitted data.
-\emph{DNS-based} attacks redirect legitimate domain names through DNS spoofing.
-The 30 dataset features capture both URL structural properties and
-HTML/JavaScript behavioral signals, so our approach targets the first two
-vectors.
-
-\subsection{The UCI Phishing Websites Dataset}
-The dataset~\cite{uci327} contains 11,055 instances labeled phishing ($-1$) or
-legitimate ($1$), described by 30 features in four
-categories~\cite{mohammad2014}: \emph{Address-Bar based} (12 features: IP
-address, URL length, shortening service, \texttt{@} symbol, double-slash
-redirect, prefix/suffix, subdomain count, SSL state, registration length,
-favicon origin, port, HTTPS token); \emph{Abnormal based} (6: request URL,
-anchor URLs, links in tags, server-form handler, email submission, abnormal
-URL); \emph{HTML/JavaScript based} (5: redirects, \texttt{onmouseover},
-right-click, pop-ups, \texttt{iframe}); and \emph{Domain based} (7: domain age,
-DNS record, web traffic, PageRank, Google index, inbound links, statistical
-reports). Each feature uses a ternary encoding---$1$ (legitimate), $0$
-(suspicious), $-1$ (phishing)---which carries more information than a binary
-flag. The class split is near-balanced (55.7\% legitimate, 44.3\% phishing), so
-no special imbalance handling is required.
-
-\subsection{Multilayer Perceptron}
-An MLP is a feedforward network with an input layer, one or more hidden layers,
-and an output layer~\cite{lecun2015}. Hidden units use the ReLU activation
-$\mathrm{ReLU}(z)=\max(0,z)$, which mitigates vanishing gradients. The output is
-a single sigmoid unit producing $p\in[0,1]$, the probability that the URL is
-legitimate. Weights are learned by minimizing the binary cross-entropy loss
-\begin{equation}
-\mathcal{L}(y,p) = -\bigl[y\log p + (1-y)\log(1-p)\bigr],
-\end{equation}
-with the Adam optimizer and backpropagation. To control overfitting we combine
-\emph{Dropout}~\cite{srivastava2014} (randomly zeroing units during training),
-\emph{Batch Normalization}~\cite{ioffe2015} (normalizing pre-activations per
-mini-batch), $L_2$ weight penalties, and \emph{Early Stopping} on validation
-loss.
-
-%=========================================================================
-\section{Methodology}\label{sec:method}
-%=========================================================================
-Fig.~\ref{fig:pipeline} shows the complete system. An offline lane trains and
-persists the model; a real-time lane reuses the persisted artifacts to score new
-URLs.
-
-\begin{figure}[t]
-\centering
-\includegraphics[width=\columnwidth]{fig_pipeline.png}
-\caption{End-to-end architecture: offline training (top) and real-time
-synchronous detection (bottom) sharing the persisted model and scaler.}
-\label{fig:pipeline}
-\end{figure}
-
-\subsection{Preprocessing}
-The target $\mathit{Result}\in\{-1,1\}$ is mapped to $\{0,1\}$ for the sigmoid
-output. Features keep their ternary encoding, since the intermediate $0$
-(suspicious) value is informative. All 30 features are standardized with
-\texttt{StandardScaler} fit \emph{only} on the training split to avoid leakage.
-The data is partitioned by stratified splitting into 70\% training (7,737), 15\%
-validation (1,659) and 15\% test (1,659).
-
-\subsection{Classifiers}
-Two classical baselines are trained: a Random Forest of 100 trees and an SVM
-with an RBF kernel. The proposed network, shown in Fig.~\ref{fig:mlp}, is
-\begin{center}
-\small
-Input(30)$\rightarrow$Dense(128)+BN+ReLU+Drop(0.3)$\rightarrow$\\
-Dense(64)+BN+ReLU+Drop(0.2)$\rightarrow$Dense(32)+ReLU+Drop(0.1)\\
-$\rightarrow$Dense(1, sigmoid),
-\end{center}
-with $L_2$ regularization ($\lambda=10^{-3}$), Adam (learning rate $10^{-3}$),
-binary cross-entropy loss, and Early Stopping (patience 10) restoring the best
-weights. The network has 15,105 trainable parameters.
-
-\begin{figure}[t]
-\centering
-\includegraphics[width=\columnwidth]{fig_mlp.png}
-\caption{Proposed MLP. Batch Normalization and Dropout follow the first two
-dense layers; a single sigmoid unit outputs $P(\text{legitimate})$.}
-\label{fig:mlp}
-\end{figure}
-
-%=========================================================================
-\section{Real-Time Detection Implementation}\label{sec:impl}
-%=========================================================================
-The real-time component is the main engineering contribution. It turns a raw URL
-into a verdict in a single synchronous request.
-
-\subsection{Feature Extractor}
-Given a URL, the extractor computes the 30 features in the exact training order.
-Features grounded in observable data are measured directly:
 \begin{itemize}
-  \item \emph{URL string}: IP-address host, length bands, shortening services,
-        \texttt{@} symbol, double-slash redirect, prefix/suffix, subdomain
-        depth, and embedded HTTPS token---parsed with \texttt{tldextract}.
-  \item \emph{Transport}: the SSL final state is checked through a real TLS
-        handshake; redirects are counted from the HTTP response chain.
-  \item \emph{HTML/JavaScript}: the page is fetched and parsed with
-        BeautifulSoup to compute the fraction of external request URLs, anchors,
-        and links in tags, the server-form handler, email submission, and the
-        \texttt{onmouseover}, right-click, pop-up and \texttt{iframe} signals.
-  \item \emph{Network}: DNS A/AAAA records are resolved; WHOIS provides domain
-        age and registration length.
+    \item Una comparación sistemática de distintas arquitecturas MLP con diferentes niveles de profundidad y técnicas de regularización, contrastadas con modelos clásicos de referencia como Random Forest y SVM.
+
+    \item Una evaluación experimental del desempeño de los clasificadores sobre el conjunto de datos UCI Phishing Websites.
+
+    \item El diseño e implementación de un sistema de detección en tiempo real accesible mediante una API REST, un componente ausente en los trabajos previos relacionados.
 \end{itemize}
 
-\subsection{Honest Limits of Real-Time Extraction}
-Four features depend on services that no longer offer a free public interface:
-\emph{web\_traffic} (Alexa, retired May 2022), \emph{Page\_Rank} (Toolbar
-PageRank, retired 2016), \emph{Links\_pointing\_to\_page} (backlink index), and
-\emph{Statistical\_report}/\emph{Google\_Index} (search/threat-intel APIs). For
-these the extractor returns a neutral default and \emph{records the provenance}
-of every feature as \texttt{measured} or \texttt{default}, so the service is
-transparent about how much of a verdict rests on live evidence. In a typical run
-against a reachable site, 24 of 30 features are measured live.
+%=========================================================================
+\section{Trabajo Relacionado}
+%=========================================================================
 
-\subsection{REST API and Demo}
-The trained model (\texttt{best\_model.keras}) and scaler
-(\texttt{scaler.joblib}) are served by a FastAPI application with three
-endpoints: \texttt{POST /predict/features} (score a 30-value vector),
-\texttt{POST /predict/url} (extract and score a raw URL, returning the verdict,
-confidence and per-feature provenance), and \texttt{GET /} (an interactive web
-demo). Inference is sub-second once the model is loaded.
+La investigación sobre la detección automática de phishing ha evolucionado considerablemente durante los últimos quince años. Los primeros trabajos se centraron en identificar características discriminantes de las URLs y de las páginas web, mientras que las investigaciones más recientes han incorporado técnicas avanzadas de aprendizaje automático y aprendizaje profundo. La Tabla~\ref{tab:related} resume algunos de los trabajos más representativos de esta evolución.
+
+\begin{table*}[t]
+\centering
+\caption{Comparación de trabajos relacionados}
+\label{tab:related}
+\begin{tabular}{lllll}
+\hline
+\textbf{Referencia} & \textbf{Técnica} & \textbf{Tamaño del dataset} & \textbf{Mejor precisión} & \textbf{Tiempo real} \\
+\hline
+Mohammad et al.~\cite{mohammad2012} & Extracción de características & 2.500 URLs & 84\% & No \\
+Mohammad et al.~\cite{mohammad2014} & J48, RF, SSNN & 11.055 URLs & $\sim97\%$ & No \\
+Sahingoz et al.~\cite{sahingoz2019} & Random Forest + PLN & 73.575 URLs & 97,32\% & No \\
+Vrban{\v{c}}i{\v{c}} et al.~\cite{vrbancic2020} & XGBoost, Ensambles & $\sim$88.000 URLs & $\sim97,6\%$ & No \\
+Chatterjee y Namin~\cite{chatterjee2019} & Aprendizaje por refuerzo & URLs propias & $\sim96\%$ & No \\
+Este trabajo & MLP + RF + SVM & 11.055 URLs & 96,5\% & Sí \\
+\hline
+\end{tabular}
+\end{table*}
+
+Uno de los trabajos fundacionales en esta área fue desarrollado por Mohammad et al.~\cite{mohammad2012}, quienes diseñaron un conjunto de reglas automáticas para extraer 17 características de URLs obtenidas de PhishTank. Posteriormente, en 2014~\cite{mohammad2014}, los mismos autores ampliaron el conjunto de datos a 11.055 muestras y definieron las 30 características que actualmente constituyen uno de los referentes más utilizados en la literatura. Además, compararon varios clasificadores, incluyendo una red neuronal auto-estructurada (SSNN) que alcanzó aproximadamente un 97\% de precisión.
+
+Con el paso del tiempo, los conjuntos de datos aumentaron considerablemente en tamaño y complejidad. Sahingoz et al.~\cite{sahingoz2019} incorporaron características derivadas del procesamiento de lenguaje natural junto con propiedades estructurales de las URLs y obtuvieron una precisión del 97,32\% utilizando Random Forest sobre un conjunto de 73.575 muestras. Posteriormente, Vrban{\v{c}}i{\v{c}} et al.~\cite{vrbancic2020} evaluaron métodos de ensamble sobre conjuntos de datos de mayor escala, alcanzando aproximadamente un 97,6\% de precisión y consolidando a Random Forest y XGBoost como enfoques altamente competitivos. Por otra parte, Chatterjee y Namin~\cite{chatterjee2019} exploraron técnicas de aprendizaje por refuerzo profundo con el objetivo de adaptarse a tácticas de ataque dinámicas, aunque a costa de una mayor complejidad de entrenamiento.
+
+A pesar de los avances obtenidos, una limitación común a todos estos trabajos es que abordan el problema como un experimento de clasificación fuera de línea. En otras palabras, los modelos son evaluados sobre conjuntos de datos estáticos, pero no se implementan como herramientas que puedan utilizarse en un entorno real.
+
+Además, ninguno de los trabajos previos basados en el conjunto de datos UCI realiza una comparación sistemática de arquitecturas MLP utilizando técnicas modernas de regularización ni incorpora un mecanismo de detección en tiempo real. Este trabajo busca cubrir ambas carencias.
 
 %=========================================================================
-\section{Results and Analysis}\label{sec:results}
+\section{Marco Teórico}
 %=========================================================================
-All models are evaluated on the same stratified test set of 1,659 samples.
-Table~\ref{tab:results} reports the metrics.
+
+\subsection{Phishing en sitios web}
+
+El phishing es un delito informático en el que un sitio web fraudulento imita a una entidad legítima con el objetivo de obtener información sensible de los usuarios~\cite{mohammad2012}. Dependiendo de la estrategia utilizada, estos ataques pueden clasificarse en tres categorías principales:
+
+\begin{itemize}
+\item \textbf{Basado en URL}: manipula el dominio mediante errores tipográficos, caracteres Unicode visualmente similares o el uso de direcciones IP en lugar de nombres de dominio.
+
+\item \textbf{Basado en contenido}: replica visualmente el sitio legítimo e incorpora formularios que envían la información capturada al atacante.
+
+\item \textbf{Basado en DNS}: redirige al usuario hacia servidores controlados por el atacante, siendo uno de los enfoques más difíciles de detectar únicamente a partir de la URL.
+\end{itemize}
+
+Este trabajo se enfoca principalmente en el phishing basado en URL y en contenido, ya que las 30 características del conjunto de datos UCI capturan tanto propiedades estructurales de la dirección web como señales derivadas del comportamiento de la página.
+
+\subsection{El conjunto de datos UCI Phishing Websites}
+
+El conjunto de datos fue construido por Mohammad et al.~\cite{mohammad2012,mohammad2014} a partir de URLs provenientes de PhishTank y de sitios web legítimos. Contiene 11.055 instancias etiquetadas como phishing ($-1$) o legítimas ($1$).
+
+Las 30 características se agrupan en cuatro categorías principales~\cite{mohammad2014}:
+
+\begin{itemize}
+
+\item \textbf{Características basadas en la barra de direcciones} (12): presencia de direcciones IP, longitud de la URL, servicios de acortamiento, símbolo @, redirecciones, subdominios, certificado SSL, duración del dominio, favicon, puertos y token HTTPS.
+
+\item \textbf{Características basadas en anomalías} (6): URLs externas, destinos de enlaces, gestores de formularios, envío por correo y patrones obtenidos mediante WHOIS.
+
+\item \textbf{Características HTML y JavaScript} (5): redirecciones, eventos \texttt{onmouseover}, menú contextual, ventanas emergentes e \texttt{<iframe>}.
+
+\item \textbf{Características basadas en el dominio} (7): antigüedad, registros DNS, Alexa, PageRank, indexación en Google, enlaces entrantes e informes de phishing.
+\end{itemize}
+
+Las variables utilizan una codificación ternaria: $1$ (legítimo), $0$ (sospechoso) y $-1$ (phishing). La distribución de clases es aproximadamente 55,7\% legítima y 44,3\% phishing, un balance suficientemente uniforme como para no requerir técnicas adicionales de manejo de desequilibrio.
+
+\subsection{Perceptrón Multicapa (MLP)}
+
+Un perceptrón multicapa (MLP) es una red neuronal \textit{feedforward} compuesta por una capa de entrada, una o varias capas ocultas y una capa de salida~\cite{lecun2015}.
+
+Para este problema de clasificación binaria, la arquitectura empleada utiliza una capa de entrada de 30 neuronas, correspondiente a las características del conjunto de datos. Las capas ocultas emplean la función de activación ReLU,
+
+\[
+\text{ReLU}(z)=\max(0,z)
+\]
+
+la cual ayuda a mitigar el problema del desvanecimiento del gradiente y acelera la convergencia durante el entrenamiento. Finalmente, la capa de salida contiene una única neurona con activación sigmoide, que produce una probabilidad $p \in [0,1]$ de que una URL corresponda a un sitio de phishing.
+
+El aprendizaje de los pesos se realiza minimizando la función de pérdida de entropía cruzada binaria:
+
+\[
+\mathcal{L}(y,p)= -[y\log(p)+(1-y)\log(1-p)]
+\]
+
+donde $y \in \{0,1\}$ representa la etiqueta real y $p$ la probabilidad predicha por el modelo. La optimización se lleva a cabo mediante el algoritmo Adam y el proceso de retropropagación.
+
+\subsection{Técnicas de regularización}
+
+Con el objetivo de reducir el sobreajuste y mejorar la capacidad de generalización del modelo, se emplearon tres técnicas complementarias.
+
+\textbf{Dropout}~\cite{srivastava2014} desactiva aleatoriamente una fracción de las neuronas durante el entrenamiento, obligando a la red a aprender representaciones más robustas.
+
+\textbf{Batch Normalization}~\cite{ioffe2015} normaliza las activaciones dentro de cada mini-lote, estabilizando el proceso de entrenamiento y favoreciendo una convergencia más rápida.
+
+Finalmente, \textbf{Early Stopping} detiene el entrenamiento cuando la pérdida de validación deja de mejorar durante un número determinado de épocas, restaurando automáticamente los pesos correspondientes al mejor desempeño alcanzado.
+
+\subsection{Métricas de evaluación}
+
+El desempeño de los modelos se evaluó mediante varias métricas complementarias. La \textbf{exactitud} mide la proporción total de clasificaciones correctas; la \textbf{precisión} cuantifica la proporción de predicciones positivas correctas; el \textbf{recall} mide la capacidad de detectar sitios de phishing y constituye una de las métricas más importantes desde la perspectiva de la ciberseguridad; el \textbf{F1-score} combina precisión y recall en una única medida; el \textbf{AUC-ROC} evalúa el comportamiento del modelo para distintos umbrales de decisión; y la \textbf{matriz de confusión} proporciona un desglose detallado de verdaderos positivos, verdaderos negativos, falsos positivos y falsos negativos.
+
+%=========================================================================
+\section{Enfoque Propuesto}
+%=========================================================================
+
+\subsection{Conjunto de datos y preprocesamiento}
+
+Se utilizó el conjunto de datos UCI Phishing Websites (ID: 327)~\cite{uci327}, cargado mediante la librería \texttt{ucimlrepo} o desde el archivo local \texttt{Training Dataset.arff}.
+
+Dado que el conjunto de datos no presenta valores faltantes, el preprocesamiento se centró en preparar la información para el entrenamiento de los modelos y garantizar una evaluación justa. Para ello, se realizaron tres etapas principales:
+
+\begin{enumerate}
+
+\item \textbf{Transformación de etiquetas}: la variable \texttt{Result}, originalmente definida en $\{-1,1\}$, se transformó a $\{0,1\}$ para hacerla compatible con la salida sigmoide del MLP.
+
+\item \textbf{Escalado}: las 30 características fueron estandarizadas utilizando \texttt{StandardScaler}, ajustado únicamente sobre el conjunto de entrenamiento para evitar fuga de información.
+
+\item \textbf{División estratificada}: los datos se dividieron en 70\% para entrenamiento (7.738 muestras), 15\% para validación (1.659 muestras) y 15\% para prueba (1.658 muestras).
+\end{enumerate}
+
+\subsection{Arquitecturas de clasificadores}
+
+Como modelos de referencia se utilizaron Random Forest con 100 árboles y SVM con kernel RBF. La arquitectura final del MLP se muestra en la Figura~\ref{fig:architecture}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\columnwidth]{architecture.png}
+    \caption{Arquitectura del clasificador propuesto.}
+    \label{fig:architecture}
+\end{figure}
+
+El modelo fue entrenado utilizando el optimizador Adam con una tasa de aprendizaje de 0,001, la función de pérdida de entropía cruzada binaria y una estrategia de parada temprana con una paciencia de 10 épocas.
+
+Adicionalmente, se realizó un estudio de ablación para analizar el impacto de diferentes decisiones de diseño. En particular, se compararon arquitecturas de dos, tres y cuatro capas ocultas, la inclusión o exclusión de Batch Normalization y distintas tasas de Dropout (0,2, 0,3 y 0,5).
+
+\subsection{Componente de detección en tiempo real}
+
+Una vez entrenado el modelo, este fue integrado en un servicio de detección en tiempo real utilizando FastAPI. Tanto el modelo como el escalador serializados se exponen mediante una API REST compuesta por dos endpoints principales.
+
+El endpoint \texttt{POST /predict/features} recibe un arreglo JSON de 30 características y retorna la clasificación junto con su probabilidad asociada. Por su parte, \texttt{POST /predict/url} recibe una URL sin procesar, extrae automáticamente las características utilizando \texttt{tldextract}, \texttt{requests} y \texttt{BeautifulSoup}, y posteriormente genera el veredicto final.
+
+La incorporación de este componente representa una de las principales diferencias respecto a los trabajos previos, ya que transforma un experimento académico de clasificación en un sistema utilizable en un entorno real.
+
+%=========================================================================
+\section{Implementación de Detección en Tiempo Real}
+%=========================================================================
+La detección en tiempo real constituye la principal contribución de este trabajo, ya que transforma un modelo entrenado en una herramienta capaz de ser utilizada en escenarios reales. El sistema implementado permite convertir una URL proporcionada por el usuario en un veredicto de seguridad mediante una única solicitud a la API, integrando la extracción automática de características y la clasificación del sitio web.
+
+\subsection{Extractor de características}
+
+A partir de una URL, el sistema calcula las 30 características utilizadas durante el entrenamiento, respetando exactamente el mismo orden y formato empleados por el modelo. De estas, 24 pueden obtenerse dinámicamente en tiempo real.
+
+\begin{itemize}
+  \item \textbf{Características de la URL:} detección de direcciones IP, longitud de la URL, servicios acortadores, presencia de caracteres especiales como @, redirecciones, subdominios y uso del token HTTPS, utilizando la librería \texttt{tldextract}.
+  
+  \item \textbf{Características de transporte:} verificación del estado SSL mediante un handshake TLS real y conteo de redirecciones HTTP.
+  
+  \item \textbf{Características HTML y JavaScript:} análisis del contenido de la página para identificar URLs externas, enlaces ancla, formularios, direcciones de correo, eventos \texttt{onmouseover}, deshabilitación del clic derecho, ventanas emergentes e iframes, utilizando \texttt{BeautifulSoup}.
+  
+  \item \textbf{Características de red:} consulta de registros DNS y obtención de la antigüedad del dominio mediante WHOIS.
+\end{itemize}
+
+\subsection{Transparencia sobre las limitaciones}
+
+Una parte importante del diseño fue reconocer que algunas características utilizadas originalmente en el dataset ya no pueden reproducirse en la actualidad debido a la desaparición de los servicios de los que dependían. Específicamente, \texttt{web\_traffic} (Alexa, retirado en 2022), \texttt{Page\_Rank} (Google Toolbar PageRank, descontinuado en 2016), \texttt{Links\_pointing\_to\_page} y \texttt{Statistical\_report}/\texttt{Google\_Index} dejaron de estar disponibles.
+
+En lugar de eliminar estas variables, el extractor asigna valores neutros y registra la procedencia (\textit{provenance}) de cada característica, indicando si fue obtenida mediante una medición real (\texttt{measured}) o mediante un valor por defecto (\texttt{default}). De esta manera, el sistema es transparente respecto a la cantidad de evidencia disponible en cada predicción. En condiciones normales, se obtienen \textbf{24 de las 30 características en tiempo real}.
+
+\subsection{API REST y demostración interactiva}
+
+El modelo entrenado (\texttt{best\_model.keras}) y el escalador (\texttt{scaler.joblib}) fueron desplegados mediante FastAPI, proporcionando tres endpoints principales:
+
+\begin{itemize}
+\item \texttt{POST /predict/features}: clasifica un vector de 30 características.
+\item \texttt{POST /predict/url}: recibe una URL, extrae automáticamente las características y retorna el veredicto, la confianza y la información de procedencia.
+\item \texttt{GET /}: interfaz web interactiva para realizar pruebas manuales.
+\end{itemize}
+
+Una vez cargado el modelo, el tiempo de inferencia es inferior a un segundo, lo que permite utilizar el sistema como un mecanismo de protección en escenarios prácticos.
+
+%=========================================================================
+\section{Resultados y Análisis}
+%=========================================================================
+La evaluación se realizó sobre el mismo conjunto de prueba estratificado compuesto por 1.659 muestras, permitiendo comparar el desempeño del modelo propuesto con dos clasificadores ampliamente utilizados en problemas de clasificación supervisada.
 
 \begin{table}[t]
-\caption{Test-set performance (1{,}659 samples)}
-\label{tab:results}
 \centering
-\renewcommand{\arraystretch}{1.25}
-\setlength{\tabcolsep}{4pt}
-\begin{tabular}{@{}lccccc@{}}
-\toprule
-\textbf{Model} & \textbf{Acc.} & \textbf{Prec.} & \textbf{Recall} & \textbf{F1} & \textbf{AUC} \\
-\midrule
-Random Forest      & \textbf{0.972} & \textbf{0.969} & 0.981 & \textbf{0.975} & \textbf{0.996} \\
-SVM (RBF)          & 0.946 & 0.935 & 0.971 & 0.953 & 0.987 \\
-MLP (proposed)     & 0.965 & 0.951 & \textbf{0.988} & 0.969 & 0.994 \\
-\bottomrule
+\caption{Desempeño en el conjunto de prueba (1.659 muestras)}
+\label{tab:results}
+\begin{tabular}{lccccc}
+\hline
+\textbf{Modelo} & \textbf{Exactitud} & \textbf{Precisión} & \textbf{Recall} & \textbf{F1} & \textbf{AUC} \\
+\hline
+Random Forest & \textbf{0,972} & \textbf{0,969} & 0,981 & \textbf{0,975} & \textbf{0,996} \\
+SVM (RBF) & 0,946 & 0,935 & 0,971 & 0,953 & 0,987 \\
+MLP (propuesto) & 0,965 & 0,951 & \textbf{0,988} & 0,969 & 0,994 \\
+\hline
 \end{tabular}
 \end{table}
 
-The MLP achieves 96.5\% accuracy and an AUC of 0.994, statistically on par with
-the Random Forest and clearly above the SVM. Crucially, the MLP attains the
-\textbf{highest recall (98.8\%)} of all models. In a security setting recall is
-the decisive metric: a false negative is a phishing site mislabeled as
-legitimate that reaches the user, whereas a false positive only inconveniences a
-user with a warning. The MLP confusion matrix (Fig.~\ref{fig:cm}) shows only 11
-false negatives out of 924 phishing samples, versus 47 false positives---an
-operating point well suited to a protective filter. The Random Forest remains a
-strong, cheaper baseline and confirms that our preprocessing reproduces the
-$\sim$97\% benchmark of Mohammad \emph{et~al.}~\cite{mohammad2014}.
+Los resultados muestran que el MLP propuesto alcanza una exactitud del 96,5\%, un F1-score de 96,9\% y un AUC de 0,994, valores muy cercanos a los obtenidos por Random Forest. Aunque este último obtiene el mejor desempeño global, las diferencias son relativamente pequeñas y ambos modelos presentan una capacidad de discriminación sobresaliente.
+
+Sin embargo, en un problema de ciberseguridad no todas las métricas tienen la misma importancia. El objetivo principal no es únicamente clasificar correctamente la mayor cantidad de muestras, sino minimizar la cantidad de sitios maliciosos que pasan desapercibidos. Por esta razón, el \textbf{recall} adquiere un papel fundamental.
+
+El MLP alcanza un \textbf{recall del 98,8\%}, el valor más alto entre todos los modelos evaluados. Esto significa que el sistema logra identificar prácticamente todos los sitios de phishing presentes en el conjunto de prueba. Desde una perspectiva práctica, un falso negativo representa un sitio malicioso que logra llegar al usuario final, mientras que un falso positivo únicamente genera una advertencia innecesaria. En consecuencia, es preferible aceptar una pequeña cantidad adicional de falsas alarmas a cambio de reducir significativamente el riesgo de que un ataque sea exitoso.
+
+La matriz de confusión presentada en la Figura~\ref{fig:cm} refuerza esta observación. De un total de 924 sitios de phishing, únicamente 11 fueron clasificados incorrectamente, mientras que se registraron 47 falsos positivos. Este comportamiento evidencia que el modelo opera en un punto de equilibrio adecuado para aplicaciones orientadas a la protección del usuario.
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=0.82\columnwidth]{confusion_mlp.png}
-\caption{MLP confusion matrix on the test set. Only 11 phishing pages
-(of 924) are missed.}
+\caption{Matriz de confusión del MLP sobre el conjunto de prueba. Solo 11 de los 924 sitios de phishing fueron clasificados incorrectamente.}
 \label{fig:cm}
 \end{figure}
+
+Las curvas ROC mostradas en la Figura~\ref{fig:roc} confirman la robustez de los tres clasificadores, ya que todos superan un AUC de 0,98, muy por encima de un clasificador aleatorio. Además, se observa que las curvas correspondientes al MLP y a Random Forest son prácticamente indistinguibles, lo que demuestra que la red neuronal logra un desempeño competitivo frente a uno de los métodos más efectivos para este tipo de problemas.
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=\columnwidth]{roc_comparison.png}
-\caption{ROC curves for the three classifiers. All exceed 0.98 AUC; the MLP and
-Random Forest are nearly indistinguishable.}
+\caption{Curvas ROC de los modelos evaluados. Tanto el MLP como Random Forest presentan un desempeño muy similar.}
 \label{fig:roc}
 \end{figure}
 
-The ROC curves in Fig.~\ref{fig:roc} confirm that all three classifiers operate
-far above the random baseline, with the MLP and Random Forest essentially
-overlapping. The training history (Fig.~\ref{fig:hist}) shows stable convergence
-within roughly 45 epochs and no divergence between training and validation loss,
-indicating that the combination of Dropout, Batch Normalization, $L_2$ and Early
-Stopping effectively controls overfitting.
+Por otra parte, el histórico de entrenamiento (Fig.~\ref{fig:hist}) evidencia una convergencia estable alrededor de las 45 épocas. No se observan divergencias importantes entre las pérdidas de entrenamiento y validación, lo que sugiere que las técnicas de regularización implementadas, como Dropout, Batch Normalization, regularización $L_2$ y Early Stopping, fueron efectivas para controlar el sobreajuste.
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=\columnwidth]{training_history.png}
-\caption{MLP training history. Validation loss tracks training loss, with Early
-Stopping restoring the best epoch.}
+\caption{Historial de entrenamiento del MLP.}
 \label{fig:hist}
 \end{figure}
 
-\subsection{End-to-End Real-Time Behavior}
-On reachable, well-behaved sites the extractor measures 24 of 30 features live
-and the API returns a confident, correct verdict in under a second. The
-remaining six features fall back to neutral defaults. We observe the expected
-failure mode when a page cannot be fetched (unreachable host, aggressive
-anti-bot defenses): the number of live-measured features drops and the verdict
-leans on URL-only signals, reducing confidence. This is an inherent property of
-real-time extraction rather than a defect of the classifier, and the provenance
-map makes it explicit to the caller.
+\subsection{Comportamiento end-to-end en tiempo real}
+
+Más allá del desempeño obtenido sobre el dataset, se evaluó el comportamiento del sistema completo en un escenario de uso real. Cuando la página objetivo es accesible y no presenta restricciones, el extractor logra obtener 24 de las 30 características en tiempo real y la API genera un veredicto confiable en menos de un segundo.
+
+No obstante, existen situaciones en las que la página no puede ser inspeccionada correctamente, por ejemplo, cuando el servidor no está disponible o implementa mecanismos anti-bots. En estos casos, disminuye la cantidad de características obtenidas dinámicamente y la predicción se basa principalmente en señales derivadas de la URL. Como consecuencia, la confianza del veredicto disminuye.
+
+Este comportamiento no debe interpretarse como una falla del clasificador, sino como una limitación inherente a cualquier sistema de detección que dependa de la disponibilidad y accesibilidad del sitio web analizado. El mecanismo de \textit{provenance} permite hacer explícita esta situación y aporta transparencia al proceso de decisión.
 
 %=========================================================================
-\section{Discussion and Limitations}\label{sec:disc}
+\section{Discusión y Limitaciones}
 %=========================================================================
-Three limitations deserve emphasis. First, the dataset, although a standard
-benchmark, dates from 2014; phishing tactics have since evolved, so absolute
-metrics may overstate performance on contemporary attacks. Second, several
-features cannot be reproduced in real time because their source services are
-defunct, creating a distribution shift between the training features and those
-available at inference; our provenance mechanism surfaces this but does not
-eliminate it. Third, content-based extraction requires fetching the target page,
-which introduces latency and exposure to anti-scraping defenses. Future work
-should retrain on a modern dataset whose features are fully reproducible online
-(e.g. URL-only lexical features as in~\cite{sahingoz2019}), add caching and
-asynchronous batching to the API, and explore calibrated confidence so that
-low-evidence verdicts are flagged rather than reported at face value.
+Si bien los resultados obtenidos son prometedores, existen varias limitaciones que deben considerarse al interpretar el alcance del trabajo.
+
+En primer lugar, el dataset utilizado, aunque es uno de los referentes más utilizados en la literatura, fue publicado en 2014. Las estrategias empleadas por los atacantes han evolucionado considerablemente desde entonces, por lo que es posible que las métricas obtenidas sobreestimen el desempeño esperado frente a campañas de phishing actuales.
+
+En segundo lugar, algunas de las características originales dependen de servicios que ya no existen. Esto genera una diferencia entre las condiciones bajo las cuales el modelo fue entrenado y las condiciones reales de inferencia. Aunque el mecanismo de \textit{provenance} permite identificar esta situación, no elimina completamente el problema del \textit{distribution shift}.
+
+Finalmente, la extracción basada en el contenido de la página introduce un costo adicional en términos de tiempo y complejidad. El sistema necesita descargar y analizar el sitio web objetivo, lo que incrementa la latencia y puede verse afectado por mecanismos de protección implementados por algunos servidores.
+
+Estas limitaciones evidencian una brecha frecuente entre los resultados obtenidos en entornos académicos y las condiciones reales de despliegue. Precisamente, uno de los aportes de este trabajo es hacer explícita esa diferencia y proponer mecanismos para manejarla de forma transparente.
+
+Como trabajo futuro, sería recomendable reentrenar el sistema utilizando un dataset más reciente y compuesto exclusivamente por características que puedan reproducirse en línea. También sería interesante incorporar mecanismos de \textit{caching} y procesamiento asíncrono para reducir la latencia, así como implementar modelos de confianza calibrada que permitan advertir al usuario cuando una predicción se haya realizado con evidencia limitada.
 
 %=========================================================================
-\section{Conclusion}\label{sec:concl}
+\section{Conclusión}
 %=========================================================================
-We presented an end-to-end phishing detection system on the UCI Phishing
-Websites dataset. A regularized MLP reaches 96.5\% accuracy, 98.8\% recall and
-0.994 AUC, matching the Random Forest baseline while offering the best recall---
-the property that matters most for a security filter. Beyond offline
-classification, we built and validated a real-time detection service: a feature
-extractor from raw URLs and a FastAPI REST API with a web demo, together with an
-honest account of what can and cannot be measured online today. This deployable
-component is the main differentiator from the foundational works on this
-dataset, turning a benchmark experiment into a usable detector.
+Este trabajo desarrolló un sistema completo de detección de phishing que integra un modelo de aprendizaje profundo con una arquitectura funcional de detección en tiempo real. El MLP propuesto alcanzó una exactitud del 96,5\% y un recall del 98,8\%, priorizando la capacidad de identificar sitios maliciosos, que constituye el objetivo más crítico desde una perspectiva de ciberseguridad.
 
+Más allá del desempeño predictivo, la principal contribución del trabajo radica en haber transformado un modelo entrenado en una herramienta desplegable, integrando la extracción automática de características, una API REST y una interfaz interactiva de demostración.
+
+Asimismo, la incorporación de mecanismos de transparencia, como el registro de la procedencia de las características utilizadas en cada predicción, permite evidenciar las limitaciones inherentes a la detección en tiempo real. En conjunto, este trabajo representa un paso hacia la reducción de la brecha entre los experimentos académicos y la implementación práctica de soluciones de seguridad utilizables en entornos reales.
 \bibliographystyle{IEEEtran}
-\bibliography{references}
+\bibliography{referencias}
 
 \end{document}
